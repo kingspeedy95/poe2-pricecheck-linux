@@ -1,5 +1,7 @@
 # poe2-pricecheck-linux
 
+<img src="assets/icon.svg" alt="icon" width="128" align="right"/>
+
 A small, Linux-first price checker for **Path of Exile 2**.
 
 Press a hotkey while hovering an item in-game; the tool copies the item,

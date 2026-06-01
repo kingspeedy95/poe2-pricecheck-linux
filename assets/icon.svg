@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <title>poe2-pricecheck-linux</title>
+  <defs>
+    <!-- Dark gothic badge background -->
+    <radialGradient id="bg" cx="42%" cy="36%" r="80%">
+      <stop offset="0%" stop-color="#15323a"/>
+      <stop offset="55%" stop-color="#0c1d22"/>
+      <stop offset="100%" stop-color="#050d0f"/>
+    </radialGradient>
+
+    <!-- Glowing currency orb (Exalted-Orb amber/gold) -->
+    <radialGradient id="orb" cx="38%" cy="34%" r="72%">
+      <stop offset="0%" stop-color="#fff6d6"/>
+      <stop offset="22%" stop-color="#ffd982"/>
+      <stop offset="55%" stop-color="#ff9e3c"/>
+      <stop offset="82%" stop-color="#d65a17"/>
+      <stop offset="100%" stop-color="#7c2c0c"/>
+    </radialGradient>
+
+    <!-- Polished gold metal for the lens frame and handle -->
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbe6b0"/>
+      <stop offset="35%" stop-color="#e8be63"/>
+      <stop offset="65%" stop-color="#9c6f1f"/>
+      <stop offset="100%" stop-color="#5e3f10"/>
+    </linearGradient>
+
+    <linearGradient id="goldEdge" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff4cf"/>
+      <stop offset="100%" stop-color="#74511a"/>
+    </linearGradient>
+
+    <!-- Soft glow for the orb -->
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Clip so the orb + rays stay inside the lens glass -->
+    <clipPath id="lens">
+      <circle cx="106" cy="106" r="62"/>
+    </clipPath>
+  </defs>
+
+  <!-- Badge -->
+  <rect x="8" y="8" width="240" height="240" rx="54" fill="url(#bg)"
+        stroke="#244a52" stroke-width="2"/>
+  <rect x="8" y="8" width="240" height="240" rx="54" fill="none"
+        stroke="#0a1416" stroke-width="1" opacity="0.6"/>
+
+  <!-- Magnifier handle (drawn first so the frame overlaps it) -->
+  <g transform="rotate(45 106 106)">
+    <rect x="96" y="168" width="20" height="74" rx="10"
+          fill="url(#gold)" stroke="#3c2a0b" stroke-width="2"/>
+    <rect x="101" y="172" width="4" height="64" rx="2" fill="#fff2c8" opacity="0.55"/>
+  </g>
+
+  <!-- Lens glass background (dark, behind the orb) -->
+  <circle cx="106" cy="106" r="62" fill="#04181c"/>
+
+  <!-- Light rays radiating from the orb, clipped to the lens -->
+  <g clip-path="url(#lens)">
+    <g fill="#ffd27a" opacity="0.9" transform="translate(106 106)">
+      <polygon points="0,-66 8,0 -8,0"/>
+      <polygon points="0,66 8,0 -8,0"/>
+      <polygon points="-66,0 0,-8 0,8"/>
+      <polygon points="66,0 0,-8 0,8"/>
+    </g>
+    <g fill="#ffe6ad" opacity="0.7" transform="translate(106 106) rotate(45)">
+      <polygon points="0,-64 6,0 -6,0"/>
+      <polygon points="0,64 6,0 -6,0"/>
+      <polygon points="-64,0 0,-6 0,6"/>
+      <polygon points="64,0 0,-6 0,6"/>
+    </g>
+  </g>
+
+  <!-- The currency orb -->
+  <g clip-path="url(#lens)">
+    <circle cx="106" cy="106" r="42" fill="url(#orb)" filter="url(#glow)"/>
+    <!-- specular highlight + faint shimmer sparks -->
+    <ellipse cx="92" cy="90" rx="15" ry="10" fill="#fffdf2" opacity="0.8"/>
+    <circle cx="128" cy="86" r="2.4" fill="#fffdf2" opacity="0.9"/>
+    <circle cx="120" cy="132" r="1.8" fill="#fff0cf" opacity="0.7"/>
+  </g>
+
+  <!-- Lens frame (gold ring) -->
+  <circle cx="106" cy="106" r="62" fill="none" stroke="url(#gold)" stroke-width="13"/>
+  <circle cx="106" cy="106" r="68.5" fill="none" stroke="#2c1e08" stroke-width="2"/>
+  <circle cx="106" cy="106" r="55.5" fill="none" stroke="#2c1e08" stroke-width="2"/>
+  <!-- frame sheen -->
+  <path d="M 66 70 A 62 62 0 0 1 150 62" fill="none"
+        stroke="#fff4cf" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+</svg>
