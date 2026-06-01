@@ -44,6 +44,8 @@ Goal: reliable prices for everything searchable by name/base.
   `online` vs `any`.
 - ⬜ Gems (incl. level/quality awareness), waystones (tier), runes.
 - ⬜ Graceful empty-result and "not enough data" messaging.
+- ⬜ **poe.ninja integration** for currency/unique baselines — fast, no
+  Cloudflare/rate-limit pain; use as a fallback when the trade API throttles. *(requested)*
 - **Done when:** currency, uniques, gems, waystones all price sanely.
 
 ---
@@ -57,6 +59,9 @@ Goal: price items by their modifiers, like the real trade site.
 - ⬜ Build `query.stats[].filters[]` with `min` from `Modifier.values`.
 - ⬜ UI to toggle which mods/filters are active and set min rolls.
 - ⬜ Pseudo-stats (e.g. total resistances) — stretch.
+- ⬜ **Roll-quality indicator** — show each mod's roll as a % of its tier
+  range with a color bar (e.g. `4 of 4–8 → 25%`). Cheap: the min–max is
+  already parsed from Advanced Item Descriptions. *(requested)*
 - **Done when:** a rare with 3–4 mods returns a relevant search.
 
 ---
@@ -75,8 +80,11 @@ Goal: price items by their modifiers, like the real trade site.
 ## Milestone 4: UX / UI polish
 - ⬜ Set the app/window/taskbar icon (`QApplication.setWindowIcon`).
 - ⬜ System-tray icon with quit + settings.
-- ⬜ In-app **settings window** (league, hotkey, POESESSID) — no hand-editing.
-- ⬜ "Copy whisper" and "Open on trade site" buttons in the popup.
+- ⬜ **Options UI** to edit the **hotkey** and **POESESSID** (and league),
+  with a "Test session" button — no hand-editing JSON. *(requested, priority)*
+- ⬜ **Copy-whisper** hotkey/button + **Open on trade site** button. *(requested)*
+- ⬜ **Quick links** — hotkeys to open the hovered item on wiki / poedb /
+  craftofexile. *(requested)*
 - ⬜ Better result layout (currency icons, price ranges, age of listing).
 - ⬜ Configurable popup position / auto-hide on focus loss.
 - **Done when:** a new user can configure and use it without touching JSON.
