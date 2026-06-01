@@ -46,6 +46,8 @@ Goal: reliable prices for everything searchable by name/base.
 - ⬜ Graceful empty-result and "not enough data" messaging.
 - ⬜ **poe.ninja integration** for currency/unique baselines — fast, no
   Cloudflare/rate-limit pain; use as a fallback when the trade API throttles. *(requested)*
+- ⬜ **"Worth picking up?" verdict** — derive a trash / decent / valuable
+  color from the price + a configurable threshold, for fast loot calls. *(requested)*
 - **Done when:** currency, uniques, gems, waystones all price sanely.
 
 ---
@@ -73,6 +75,8 @@ Goal: price items by their modifiers, like the real trade site.
 - ⬜ Item categories: maps/waystones, jewels, flasks, charms, relics,
   sanctum/relic-likes, uncut gems.
 - ⬜ Grow `tests/fixtures/` with a capture per category.
+- ⬜ **Multi-language parsing** — support the German client (and others);
+  map localized labels/mods back to canonical ids. *(requested)*
 - **Done when:** parser round-trips a representative sample of each class.
 
 ---
@@ -85,6 +89,10 @@ Goal: price items by their modifiers, like the real trade site.
 - ⬜ **Copy-whisper** hotkey/button + **Open on trade site** button. *(requested)*
 - ⬜ **Quick links** — hotkeys to open the hovered item on wiki / poedb /
   craftofexile. *(requested)*
+- ⬜ **Numbered listings** — press 1–9 in the popup to copy that seller's
+  whisper. *(requested)*
+- ⬜ **Stash search generator** — click a mod to build an in-game stash
+  search/regex string to paste into the search box. *(requested)*
 - ⬜ Better result layout (currency icons, price ranges, age of listing).
 - ⬜ Configurable popup position / auto-hide on focus loss.
 - **Done when:** a new user can configure and use it without touching JSON.
