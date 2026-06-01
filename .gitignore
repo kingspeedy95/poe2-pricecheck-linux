@@ -12,3 +12,6 @@ venv/
 
 # Local config may contain a POESESSID secret — never commit it
 config.json
+
+# Local handoff/progress notes — keep out of the repo
+PROGRESS.md
