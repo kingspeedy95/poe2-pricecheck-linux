@@ -1,59 +1,40 @@
-"""Copy the hovered item out of the game and read it back.
+"""Copy the hovered item out of the game — no external programs required.
 
-This is the piece Exiled Exchange 2 gets wrong on this machine: its bundled
-``uiohook-napi`` key injection does not reach the game, while ``xdotool``
-(plain XTEST to the focused window) does.  So we drive ``xdotool`` directly.
+Key injection uses **pynput**'s keyboard controller, which on X11 drives
+``XTestFakeKeyEvent`` with a correct keysym→keycode lookup. That is the same
+XTEST path ``xdotool`` uses (proven to work on this machine) and avoids the
+faulty internal keycode table that makes Exiled Exchange 2's ``uiohook``
+injection fail here.
 
-Flow: stamp the clipboard with a sentinel, send Ctrl+C to the game, then
-poll until the clipboard changes (the game replaced it with the item text).
+Clipboard read/write is intentionally NOT done here: ``QClipboard`` must be
+used from the Qt GUI thread, so the orchestrator in :mod:`poe2price.__main__`
+owns the clipboard and only calls :func:`send_copy_keystroke` from this module.
 """
 
 from __future__ import annotations
 
-import subprocess
-import time
+from pynput.keyboard import Controller, Key
 
-_SENTINEL = "\x00poe2price-waiting\x00"
+# Stamped into the clipboard before copying so we can tell when the game has
+# replaced it with the item text.
+SENTINEL = "\x00poe2price-waiting\x00"
 
-
-def _xclip_read() -> str:
-    try:
-        r = subprocess.run(
-            ["xclip", "-selection", "clipboard", "-o"],
-            capture_output=True, text=True, timeout=2,
-        )
-        return r.stdout
-    except Exception:
-        return ""
+_keyboard: Controller | None = None
 
 
-def _xclip_write(text: str) -> None:
-    subprocess.run(
-        ["xclip", "-selection", "clipboard"],
-        input=text, text=True, timeout=2, check=False,
-    )
+def _controller() -> Controller:
+    # Lazily created so importing this module never requires an X display
+    # (keeps unit tests importable on headless machines).
+    global _keyboard
+    if _keyboard is None:
+        _keyboard = Controller()
+    return _keyboard
 
 
-def _send_ctrl_c() -> None:
-    # Explicit down/tap/up of Ctrl+C via XTEST to the focused window. Proven
-    # to work where uiohook's injection silently failed.
-    subprocess.run(["xdotool", "keydown", "ctrl"], timeout=2, check=False)
-    subprocess.run(["xdotool", "key", "c"], timeout=2, check=False)
-    subprocess.run(["xdotool", "keyup", "ctrl"], timeout=2, check=False)
-
-
-def copy_item(timeout: float = 0.6) -> str | None:
-    """Copy the item under the cursor and return its text, or ``None``.
-
-    ``None`` means nothing was copied within *timeout* seconds (no item under
-    the cursor, or the game was not focused).
-    """
-    _xclip_write(_SENTINEL)
-    _send_ctrl_c()
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        text = _xclip_read()
-        if text and text != _SENTINEL:
-            return text
-        time.sleep(0.02)
-    return None
+def send_copy_keystroke() -> None:
+    """Send Ctrl+C to the focused window (the game)."""
+    kb = _controller()
+    kb.press(Key.ctrl)
+    kb.press("c")
+    kb.release("c")
+    kb.release(Key.ctrl)

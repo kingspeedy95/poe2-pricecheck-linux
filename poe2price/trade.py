@@ -66,6 +66,33 @@ class TradeClient:
 
     # -- public API ---------------------------------------------------------
 
+    def check_session(self) -> tuple[bool, str]:
+        """Validate the configured POESESSID.
+
+        Returns ``(ok, message)``. ``ok`` is True only when the cookie
+        authenticates against pathofexile.com. Used for the startup warning.
+        """
+        if not self.cfg.poesessid:
+            return False, "no POESESSID configured"
+        try:
+            resp = self.session.get(
+                "https://www.pathofexile.com/api/profile", timeout=10
+            )
+        except requests.RequestException as exc:
+            return False, f"could not reach pathofexile.com ({exc})"
+
+        if resp.status_code == 200:
+            try:
+                name = resp.json().get("name")
+            except ValueError:
+                name = None
+            if name:
+                return True, f"authenticated as {name}"
+            return False, "POESESSID did not return a profile (likely expired)"
+        if resp.status_code in (401, 403):
+            return False, "POESESSID rejected — log in again and copy a fresh cookie"
+        return False, f"unexpected status {resp.status_code} while checking session"
+
     def price_item(self, item: Item) -> tuple[list[Listing], str]:
         """Return (listings, trade_site_url) for *item*."""
         query = build_query(item)

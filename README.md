@@ -21,13 +21,20 @@ to your cursor.
 
 ## Requirements
 
-System tools (X11):
+- An **X11** session (the key injection uses XTEST).
+- **Python ≥ 3.10**.
+- One system library for the Qt GUI:
 
-```bash
-sudo apt install xdotool xclip libnotify-bin
-```
+  ```bash
+  sudo apt install libxcb-cursor0
+  ```
 
-Python ≥ 3.10.
+  This is the only OS package needed. It cannot be installed via `pip`
+  (Qt 6.5+ requires it at runtime). No external command-line tools are
+  used — key injection is `pynput`, the clipboard is Qt.
+
+> **Planned:** an AppImage build that bundles `libxcb-cursor0`, the Qt
+> plugins, and Python, so end users need nothing installed at all.
 
 ## Install
 

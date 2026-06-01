@@ -1,12 +1,14 @@
 """Entry point: wire the global hotkey to copy -> parse -> price -> popup.
 
-The hotkey is detected on a background thread (pynput).  All the Qt work
-must happen on the main thread, and the network call must *not* block the UI,
-so the flow is:
+Threading model:
 
-    pynput thread  --signal-->  Qt main thread  --worker thread-->  network
-                                      ^                                 |
-                                      +-------------- signal -----------+
+* The hotkey is detected by pynput on its own thread; it emits a Qt signal.
+* Clipboard access (``QClipboard``) must happen on the Qt GUI thread, so the
+  copy + poll runs there, driven by a non-blocking ``QTimer`` (never sleeps
+  the UI).
+* Only the network call runs on a worker thread, reporting back via signals.
+
+No external programs are used: key injection is pynput, clipboard is Qt.
 """
 
 from __future__ import annotations
@@ -15,47 +17,40 @@ import sys
 import threading
 
 from PyQt6 import QtCore, QtWidgets
+
 from pynput import keyboard
 
-from .clipboard import copy_item
-from .config import Config
+from .clipboard import SENTINEL, send_copy_keystroke
+from .config import CONFIG_PATH, Config
 from .parser import Item, parse
 from .trade import TradeClient, TradeError
 from .ui import PriceWindow
 
+# How long to wait for the game to replace the clipboard after Ctrl+C.
+_POLL_INTERVAL_MS = 30
+_POLL_ATTEMPTS = 20  # ~600 ms total
 
-class Worker(QtCore.QObject):
-    """Runs a price check off the UI thread and reports back via signals."""
 
-    loading = QtCore.pyqtSignal(object)            # Item
+class PriceWorker(QtCore.QObject):
+    """Runs the trade lookup off the UI thread."""
+
     finished = QtCore.pyqtSignal(object, object, str)  # Item, list[Listing], url
     failed = QtCore.pyqtSignal(str)
 
-    def __init__(self, cfg: Config) -> None:
+    def __init__(self, client: TradeClient, item: Item) -> None:
         super().__init__()
-        self.client = TradeClient(cfg)
+        self.client = client
+        self.item = item
 
     def run(self) -> None:
-        text = copy_item()
-        if not text:
-            self.failed.emit(
-                "Nothing copied. Hover an item in-game and keep the game focused."
-            )
-            return
-        item: Item = parse(text)
-        if not (item.name or item.base_type):
-            self.failed.emit("Could not recognise an item in the clipboard.")
-            return
-        self.loading.emit(item)
         try:
-            listings, url = self.client.price_item(item)
+            listings, url = self.client.price_item(self.item)
         except TradeError as exc:
             self.failed.emit(str(exc))
-            return
         except Exception as exc:  # network, JSON, ...
             self.failed.emit(f"Unexpected error: {exc}")
-            return
-        self.finished.emit(item, listings, url)
+        else:
+            self.finished.emit(self.item, listings, url)
 
 
 class App(QtCore.QObject):
@@ -64,28 +59,82 @@ class App(QtCore.QObject):
     def __init__(self, cfg: Config) -> None:
         super().__init__()
         self.cfg = cfg
+        self.client = TradeClient(cfg)
         self.window = PriceWindow()
+        self.clipboard = QtWidgets.QApplication.clipboard()
+
         self.hotkey_pressed.connect(self._on_hotkey)
 
+        self._poll_timer = QtCore.QTimer()
+        self._poll_timer.setInterval(_POLL_INTERVAL_MS)
+        self._poll_timer.timeout.connect(self._poll_clipboard)
+        self._poll_attempts = 0
+        self._busy = False
+
+    # -- copy (Qt thread) ---------------------------------------------------
+
     def _on_hotkey(self) -> None:
-        worker = Worker(self.cfg)
-        worker.loading.connect(self.window.show_loading)
-        worker.finished.connect(self.window.show_result)
-        worker.failed.connect(self.window.show_error)
-        # Keep a reference so it isn't garbage-collected mid-run.
-        self._worker = worker
+        if self._busy:
+            return
+        self._busy = True
+        self.clipboard.setText(SENTINEL)
+        try:
+            send_copy_keystroke()
+        except Exception as exc:
+            self._busy = False
+            self.window.show_error(f"Could not send copy keystroke: {exc}")
+            return
+        self._poll_attempts = 0
+        self._poll_timer.start()
+
+    def _poll_clipboard(self) -> None:
+        self._poll_attempts += 1
+        text = self.clipboard.text()
+        if text and text != SENTINEL:
+            self._poll_timer.stop()
+            self._handle_item_text(text)
+        elif self._poll_attempts >= _POLL_ATTEMPTS:
+            self._poll_timer.stop()
+            self._busy = False
+            self.window.show_error(
+                "Nothing copied. Hover an item in-game and keep the game focused."
+            )
+
+    def _handle_item_text(self, text: str) -> None:
+        item = parse(text)
+        if not (item.name or item.base_type):
+            self._busy = False
+            self.window.show_error("Could not recognise an item in the clipboard.")
+            return
+        self.window.show_loading(item)
+        self._start_lookup(item)
+
+    # -- price lookup (worker thread) --------------------------------------
+
+    def _start_lookup(self, item: Item) -> None:
+        worker = PriceWorker(self.client, item)
+        worker.finished.connect(self._on_finished)
+        worker.failed.connect(self._on_failed)
+        self._worker = worker  # keep a reference while it runs
         threading.Thread(target=worker.run, daemon=True).start()
+
+    def _on_finished(self, item: Item, listings, url: str) -> None:
+        self._busy = False
+        self.window.show_result(item, listings, url)
+
+    def _on_failed(self, message: str) -> None:
+        self._busy = False
+        self.window.show_error(message)
 
 
 def main() -> int:
     cfg = Config.load()
 
     qt = QtWidgets.QApplication(sys.argv)
-    qt.setQuitOnLastWindowClosed(False)  # live in the tray/background
+    qt.setQuitOnLastWindowClosed(False)  # live in the background
 
     app = App(cfg)
 
-    # pynput runs the hotkey listener on its own thread; bounce into Qt.
     def on_activate() -> None:
         app.hotkey_pressed.emit()
 
@@ -93,11 +142,20 @@ def main() -> int:
     hotkey.daemon = True
     hotkey.start()
 
-    print(f"poe2-pricecheck-linux running. League: {cfg.league!r}. "
-          f"Hotkey: {cfg.hotkey}. Hover an item and press it. Ctrl+C here to quit.")
-    if not cfg.poesessid:
-        print("WARNING: no POESESSID set in config — trade requests may be "
-              "blocked by Cloudflare. See README.")
+    print(
+        f"poe2-pricecheck-linux running. League: {cfg.league!r}. "
+        f"Hotkey: {cfg.hotkey}. Hover an item and press it. Ctrl+C here to quit."
+    )
+
+    # Startup session check / warning.
+    ok, message = app.client.check_session()
+    if ok:
+        print(f"POESESSID OK: {message}.")
+    else:
+        print(
+            f"WARNING: {message}. Trade requests may be blocked by Cloudflare. "
+            f"Add a valid POESESSID to {CONFIG_PATH}."
+        )
 
     return qt.exec()
 
