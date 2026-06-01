@@ -1,0 +1,29 @@
+[project]
+name = "poe2-pricecheck-linux"
+version = "0.1.0"
+description = "A Linux-first price checker for Path of Exile 2"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "kingspeedy95" }]
+dependencies = [
+    "requests>=2.31",
+    "pynput>=1.7",
+    "PyQt6>=6.6",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+poe2-pricecheck = "poe2price.__main__:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["poe2price"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

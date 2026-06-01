@@ -1,0 +1,12 @@
+Item Class: Jewels
+Rarity: Magic
+Marking Emerald of Hunting
+--------
+Item Level: 24
+--------
+{ Prefix Modifier "Marking" (Tier: 1) }
+4(4-8)% increased Effect of your Mark Skills
+{ Suffix Modifier "of Hunting" (Tier: 1) — Attack, Critical }
+17(10-20)% increased Critical Damage Bonus with Spears
+--------
+Place into an allocated Jewel Socket on the Passive Skill Tree. Right click to remove from the Socket.

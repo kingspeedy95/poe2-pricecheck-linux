@@ -1,0 +1,16 @@
+Item Class: Sceptres
+Rarity: Magic
+Beryl Rattling Sceptre of the Taskmaster
+--------
+Spirit: 100
+--------
+Requires: Level 3, 9 Int
+--------
+Item Level: 3
+--------
+Grants Skill: Level 2 Skeletal Warrior Minion
+--------
+{ Prefix Modifier "Beryl" (Tier: 11) - Mana }
++12(10-14) to maximum Mana
+{ Suffix Modifier "of the Taskmaster" (Tier: 4) - Minion, Gem }
++1 to Level of all Minion Skills
