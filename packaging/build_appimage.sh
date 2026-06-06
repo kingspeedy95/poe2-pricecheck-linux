@@ -33,6 +33,7 @@ python3 -m pip install --quiet "pyinstaller==$PYINSTALLER_VERSION"
 rm -rf build dist/"$APP_ID" "$APP_ID.spec"
 pyinstaller --noconfirm --clean \
     --name "$APP_ID" \
+    --paths "$REPO_DIR" \
     --add-data "assets:assets" \
     --hidden-import "pynput.keyboard._xorg" \
     --hidden-import "pynput.mouse._xorg" \
