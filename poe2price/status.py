@@ -7,11 +7,25 @@ steals focus, and auto-hides when asked.
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 
-_ASSETS = Path(__file__).resolve().parent.parent / "assets"
+
+def _assets_dir() -> Path:
+    """Locate the bundled ``assets`` directory, in source and frozen builds.
+
+    PyInstaller unpacks data files under ``sys._MEIPASS``; in a normal checkout
+    the assets live next to the package.
+    """
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        return Path(meipass) / "assets"
+    return Path(__file__).resolve().parent.parent / "assets"
+
+
+_ASSETS = _assets_dir()
 
 
 def app_icon() -> QtGui.QIcon:

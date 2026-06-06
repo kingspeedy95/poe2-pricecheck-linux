@@ -33,22 +33,30 @@ to your cursor.
 
 ## Requirements
 
-- An **X11** session (the key injection uses XTEST).
-- **Python ≥ 3.10**.
-- One system library for the Qt GUI:
-
-  ```bash
-  sudo apt install libxcb-cursor0
-  ```
-
-  This is the only OS package needed. It cannot be installed via `pip`
-  (Qt 6.5+ requires it at runtime). No external command-line tools are
+- An **X11** session (the key injection uses XTEST) — required for every
+  install method.
+- The **AppImage** needs nothing else.
+- **From source:** **Python ≥ 3.10** and `libxcb-cursor0` (Qt 6.5+ needs it at
+  runtime; it can't be installed via `pip`). No external command-line tools are
   used — key injection is `pynput`, the clipboard is Qt.
 
-> **Planned:** an AppImage build that bundles `libxcb-cursor0`, the Qt
-> plugins, and Python, so end users need nothing installed at all.
-
 ## Install
+
+### AppImage (recommended)
+
+Grab the latest `.AppImage` from the
+[Releases](https://github.com/kingspeedy95/poe2-pricecheck-linux/releases) page —
+it bundles Python, Qt, and all dependencies, so **no system packages are
+needed**:
+
+```bash
+chmod +x poe2-pricecheck-*.AppImage
+./poe2-pricecheck-*.AppImage
+```
+
+(Requires an X11 session; the key injection uses XTEST.)
+
+### From source
 
 ```bash
 git clone git@github.com:kingspeedy95/poe2-pricecheck-linux.git
@@ -56,6 +64,7 @@ cd poe2-pricecheck-linux
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+sudo apt install libxcb-cursor0   # the one OS package Qt needs at runtime
 ```
 
 ## Configure
@@ -118,6 +127,25 @@ Tests run headless (Qt uses the offscreen platform via `tests/conftest.py`) and
 are built from real clipboard captures and live API responses in
 `tests/fixtures/`. CI runs `pytest` + `ruff` on push (see
 `.github/workflows/ci.yml`).
+
+Preview the popup layout without the game:
+
+```bash
+QT_QPA_PLATFORM=offscreen python tools/render_popup.py   # writes PNGs to /tmp/poe2popup
+```
+
+### Contributing & releases
+
+- Development happens on **branches via pull requests**; `main` stays
+  releasable and CI must be green to merge.
+- To cut a release, tag a version on `main`:
+
+  ```bash
+  git tag v0.2.0 && git push origin v0.2.0
+  ```
+
+  `.github/workflows/release.yml` then builds the AppImage and publishes a
+  GitHub Release with an auto-generated changelog.
 
 ## License
 

@@ -10,6 +10,21 @@ def test_app_icon_loads(qapp):
     assert not icon.isNull(), "bundled app icon should load"
 
 
+def test_assets_dir_source_checkout():
+    from poe2price.status import _assets_dir
+
+    path = _assets_dir()
+    assert path.name == "assets"
+    assert (path / "icon.svg").exists()  # real assets in a source checkout
+
+
+def test_assets_dir_frozen(monkeypatch, tmp_path):
+    import poe2price.status as status
+
+    monkeypatch.setattr(status.sys, "_MEIPASS", str(tmp_path), raising=False)
+    assert status._assets_dir() == tmp_path / "assets"
+
+
 @pytest.fixture
 def toast(qapp):
     from poe2price.status import StatusToast

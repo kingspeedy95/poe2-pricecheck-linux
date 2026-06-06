@@ -120,12 +120,17 @@ Goal: price items by their modifiers, like the real trade site.
 ---
 
 ## Milestone 5: Distribution
-- ⬜ **AppImage** build (PyInstaller + linuxdeploy) bundling Python, Qt
-  plugins, and `libxcb-cursor0` → zero system deps for end users.
+- ✅ **AppImage** build (PyInstaller + appimagetool) bundling Python, Qt
+  plugins, and the app → zero system deps for end users
+  (`packaging/build_appimage.sh`).
 - ✅ `.desktop` launcher + install script (`packaging/install.sh`).
 - ✅ Optional autostart entry (`install.sh --autostart`).
-- ⬜ Tagged GitHub Releases with the AppImage attached.
+- ✅ Tagged GitHub Releases with the AppImage + changelog attached, built on
+  `v*` tags (`.github/workflows/release.yml`).
 - **Done when:** a user downloads one file, makes it executable, and it runs.
+
+> **Workflow:** development now happens on branches via pull requests; `main`
+> stays releasable. Tag `vX.Y.Z` on `main` to cut a release.
 
 ---
 
