@@ -8,13 +8,22 @@ git) for the day-to-day handoff notes.
 
 ---
 
-## Current status
-- ✅ Item parser (handles Advanced Item Descriptions), 13 tests passing.
+## Current status (updated 2026-06-06)
+- ✅ Item parser (handles Advanced Item Descriptions).
 - ✅ Clipboard copy via pynput (XTEST) + Qt clipboard — no external tools.
-- ✅ Trade client: search + fetch, rate-limit aware, `check_session()`.
-- ✅ PyQt6 popup near cursor; startup POESESSID warning.
-- ✅ PoE2-themed icon (SVG + PNGs).
-- 🚧 Live trade API never exercised — query schema unverified.
+- ✅ **Live trade API verified end-to-end** (auth, search, fetch, exchange);
+  real-response fixtures in `tests/fixtures/`. Pynput Ctrl+C reaches the game.
+- ✅ Trade client: adaptive per-endpoint rate-limit throttling, 5xx retry,
+  429 `Retry-After` handling.
+- ✅ **Stat-ID matching** for rares/magics: `data/stats` cached, mods → stat
+  ids, **pseudo-stat folding** (resist/life/attrs), relaxed (~90%) min rolls.
+- ✅ **Currency via bulk exchange** endpoint.
+- ✅ Search-summary shown in popup ("base + N filters" / "base only").
+- ✅ Popup: draggable, remembers position, ✕ button, multi-monitor clamp.
+- ✅ System-tray icon (quit) + bottom-centre status toast + PoE2 detection.
+- ✅ Single-instance guard; `.desktop` launcher + installer.
+- ✅ PoE2-themed icon (SVG + PNGs); 90 tests passing.
+- ⬜ Next up: the two requested UI features below (M4) + price summary (M1).
 
 ---
 
@@ -36,14 +45,13 @@ Goal: a real price comes back end-to-end for at least one item.
 ## Milestone 1: Solid name-based pricing
 Goal: reliable prices for everything searchable by name/base.
 
-- ⬜ **Currency** via the bulk **exchange** endpoint
-  (`/api/trade2/exchange/...`) rather than `search` — different schema.
-- ⬜ Price **summary stats**: show min / median + listing count, not just a
-  raw list.
-- ⬜ Handle "online but offline-friendly" status options; let config choose
-  `online` vs `any`.
+- ✅ **Currency** via the bulk **exchange** endpoint
+  (`/api/trade2/exchange/...`) rather than `search`.
+- ✅ Price **summary stats**: median + low + listing count (median denoises the
+  exchange "lowball bait" listings).
+- ✅ Config `status`: choose `online` vs `any`.
 - ⬜ Gems (incl. level/quality awareness), waystones (tier), runes.
-- ⬜ Graceful empty-result and "not enough data" messaging.
+- ✅ Graceful empty-result + "few data points" low-confidence messaging.
 - ⬜ **poe.ninja integration** for currency/unique baselines — fast, no
   Cloudflare/rate-limit pain; use as a fallback when the trade API throttles. *(requested)*
 - ⬜ **"Worth picking up?" verdict** — derive a trash / decent / valuable
@@ -55,15 +63,16 @@ Goal: reliable prices for everything searchable by name/base.
 ## Milestone 2: Stat-ID matching (rares & magics)
 Goal: price items by their modifiers, like the real trade site.
 
-- ⬜ Fetch `/api/trade2/data/stats`; cache locally, refresh per league/patch.
-- ⬜ Map each parsed `Modifier.text` (already `#`-normalised) → stat id.
-  Handle implicit/explicit/rune variants of the same text.
-- ⬜ Build `query.stats[].filters[]` with `min` from `Modifier.values`.
-- ⬜ UI to toggle which mods/filters are active and set min rolls.
-- ⬜ Pseudo-stats (e.g. total resistances) — stretch.
-- ⬜ **Roll-quality indicator** — show each mod's roll as a % of its tier
-  range with a color bar (e.g. `4 of 4–8 → 25%`). Cheap: the min–max is
-  already parsed from Advanced Item Descriptions. *(requested)*
+- ✅ Fetch `/api/trade2/data/stats`; cached locally (weekly refresh).
+- ✅ Map each parsed `Modifier.text` (already `#`-normalised) → stat id.
+  Handles implicit/explicit/rune variants of the same text.
+- ✅ Build `query.stats[].filters[]` with relaxed `min` from `Modifier.values`.
+- ➡️ UI to toggle which mods/filters are active and set min rolls — promoted to
+  the M4 **"Modify the search" panel**.
+- ✅ Pseudo-stats (total elemental resistance, life, mana, ES, attributes).
+- 🚧 **Roll-quality indicator** — `Modifier.ranges` + `roll_quality` (0..1) are
+  now parsed from Advanced Item Descriptions; the colour-bar display lands with
+  the rich UI. *(requested)*
 - **Done when:** a rare with 3–4 mods returns a relevant search.
 
 ---
@@ -82,15 +91,26 @@ Goal: price items by their modifiers, like the real trade site.
 ---
 
 ## Milestone 4: UX / UI polish
+- ⬜ **Rich trade-tool UI** — rework the popup to look like Exiled Exchange 2 /
+  Awakened PoE Trade, but with **our own PoE2-exile theme** (dark + gold).
+  More visual structure and icons: item header with class/rarity icon, mod rows
+  with affix/tier badges and roll-quality bars, currency icons beside prices,
+  listing age + seller, sectioned layout (item · filters · results).
+  *(requested, priority)*
+- ⬜ **"Modify the search" panel** — an interactive filter editor like EE2: per
+  mod/pseudo toggle on/off, set min/max per filter (spin/slider), choose
+  base-type on/off, item level, rarity, corrupted, `online` vs `any`, then a
+  **re-run search** button. Builds on the M2 stat filters + the search-summary
+  we already surface. *(requested, priority)*
 - ⬜ Set the app/window/taskbar icon (`QApplication.setWindowIcon`).
 - ⬜ System-tray icon with quit + settings.
 - ⬜ **Options UI** to edit the **hotkey** and **POESESSID** (and league),
   with a "Test session" button — no hand-editing JSON. *(requested, priority)*
-- ⬜ **Copy-whisper** hotkey/button + **Open on trade site** button. *(requested)*
-- ⬜ **Quick links** — hotkeys to open the hovered item on wiki / poedb /
-  craftofexile. *(requested)*
-- ⬜ **Numbered listings** — press 1–9 in the popup to copy that seller's
-  whisper. *(requested)*
+- ✅ **Copy-whisper** (popup keys 1–9) + **Open on trade site** (Enter). *(requested)*
+- ✅ **Quick links** — popup keys: **W** = community wiki, **B** = poe2db.
+  (craftofexile still todo.) *(requested)*
+- ✅ **Numbered listings** — popup shows 1–9; press the number to copy that
+  seller's whisper to the clipboard. *(requested)*
 - ⬜ **Stash search generator** — click a mod to build an in-game stash
   search/regex string to paste into the search box. *(requested)*
 - ⬜ Better result layout (currency icons, price ranges, age of listing).
@@ -102,24 +122,29 @@ Goal: price items by their modifiers, like the real trade site.
 ## Milestone 5: Distribution
 - ⬜ **AppImage** build (PyInstaller + linuxdeploy) bundling Python, Qt
   plugins, and `libxcb-cursor0` → zero system deps for end users.
-- ⬜ `.desktop` launcher + install script.
-- ⬜ Optional autostart entry.
+- ✅ `.desktop` launcher + install script (`packaging/install.sh`).
+- ✅ Optional autostart entry (`install.sh --autostart`).
 - ⬜ Tagged GitHub Releases with the AppImage attached.
 - **Done when:** a user downloads one file, makes it executable, and it runs.
 
 ---
 
 ## Milestone 6: Quality & infrastructure
-- ⬜ GitHub Actions CI: run `pytest` + lint on push.
-- ⬜ Formatter/linter (ruff/black) config.
-- ⬜ Logging to `~/.local/state/poe2-pricecheck/log` for debugging.
-- ⬜ Robust rate-limit compliance (parse `X-Rate-Limit-*` properly, backoff).
+- ✅ GitHub Actions CI: `pytest` + ruff on push (`.github/workflows/ci.yml`).
+- ✅ Linter (ruff) config in `pyproject.toml`.
+- ✅ Logging to `~/.local/state/poe2-pricecheck/poe2price.log`.
+- ✅ Robust rate-limit compliance (adaptive `X-Rate-Limit-*` throttle, backoff).
 - ⬜ Wayland note / fallback (currently X11-only via XTEST).
 
 ---
 
 ## Known risks / open questions
-- pynput Ctrl+C reaching the Wine game window (verify in M0).
-- Exact `trade2` query + exchange schemas (discover from live responses in M0/M1).
-- Cloudflare/rate limits on the trade API; POESESSID expiry handling.
-- Stat-text → stat-id mapping ambiguity for similar mods (M2).
+- ✅ pynput Ctrl+C reaching the Wine game window — confirmed working.
+- ✅ `trade2` search/exchange/stats schemas — verified live, fixtures saved.
+- ✅ Rate limits — adaptive throttle + 429 handling in place.
+- ⬜ POESESSID expiry — startup check warns; no auto-refresh.
+- ⬜ poe.ninja PoE2 API — endpoints unverified (guessed URLs 404); needs
+  investigation before the baseline-price fallback can be built.
+- ⬜ Over-constrained rare searches (many high min-rolls → few results); the
+  M4 "modify the search" panel will let users relax filters.
+- ⬜ Magic items have no base type (parser limitation) → stat-only search.

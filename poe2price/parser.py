@@ -26,8 +26,10 @@ from dataclasses import dataclass, field
 _SECTION_SEP = re.compile(r"^-{3,}$")
 
 # "4(4-8)" / "17(10-20)" / "1.5(1-2)" -> rolled value + (min-max range).
-# The rolled value is the number *before* the parenthesis.
-_ROLL_RE = re.compile(r"(-?\d+(?:\.\d+)?)\(-?\d+(?:\.\d+)?-(?:-?\d+(?:\.\d+)?)\)")
+# Group 1 = rolled value, group 2 = range min, group 3 = range max.
+_ROLL_RE = re.compile(
+    r"(-?\d+(?:\.\d+)?)\((-?\d+(?:\.\d+)?)-(-?\d+(?:\.\d+)?)\)"
+)
 
 # A plain signed/decimal number.
 _NUM_RE = re.compile(r"-?\d+(?:\.\d+)?")
@@ -65,6 +67,25 @@ class Modifier:
     tier: int | None = None
     name: str | None = None         # affix name, e.g. "Marking"
     raw: str = ""                   # the original stat line
+    # Per-value (min, max) tier range from Advanced Item Descriptions; an entry
+    # is None for plain numbers that carried no range.
+    ranges: list[tuple[float, float] | None] = field(default_factory=list)
+
+    @property
+    def roll_quality(self) -> float | None:
+        """Average roll position within the tier range, 0..1 (None if unknown).
+
+        e.g. a 4 rolled on a 4–8 range -> 0.0; 8 -> 1.0; 6 -> 0.5.
+        """
+        qualities: list[float] = []
+        for value, rng in zip(self.values, self.ranges, strict=False):
+            if rng is None:
+                continue
+            low, high = rng
+            if high == low:
+                continue
+            qualities.append(max(0.0, min(1.0, (value - low) / (high - low))))
+        return sum(qualities) / len(qualities) if qualities else None
 
 
 @dataclass
@@ -100,26 +121,30 @@ class Item:
         return (self.item_class or "").strip().lower() in NAME_SEARCH_CLASSES
 
 
-def normalize_stat(line: str) -> tuple[str, list[float]]:
-    """Replace numbers in a stat line with ``#`` and return the rolled values.
+def normalize_stat(line: str) -> tuple[str, list[float], list[tuple[float, float] | None]]:
+    """Replace numbers in a stat line with ``#``; return values and ranges.
 
-    Advanced-mode rolls like ``4(4-8)%`` collapse to ``#`` with value ``4``.
-    Remaining bare numbers (non-advanced text, e.g. ``+1``) are also captured.
+    Advanced-mode rolls like ``4(4-8)%`` collapse to ``#`` with value ``4`` and
+    range ``(4.0, 8.0)``. Remaining bare numbers (e.g. ``+1``) are captured as
+    values with a ``None`` range. ``values`` and ``ranges`` are aligned.
     """
     values: list[float] = []
+    ranges: list[tuple[float, float] | None] = []
 
     def _take_roll(m: re.Match) -> str:
         values.append(float(m.group(1)))
+        ranges.append((float(m.group(2)), float(m.group(3))))
         return "#"
 
     text = _ROLL_RE.sub(_take_roll, line)
 
     def _take_num(m: re.Match) -> str:
         values.append(float(m.group(0)))
+        ranges.append(None)
         return "#"
 
     text = _NUM_RE.sub(_take_num, text)
-    return text, values
+    return text, values, ranges
 
 
 def parse(text: str) -> Item:
@@ -133,7 +158,7 @@ def parse(text: str) -> Item:
             sections.append([])
         else:
             sections[-1].append(line.rstrip())
-    sections = [s for s in sections if any(l.strip() for l in s)]
+    sections = [s for s in sections if any(line.strip() for line in s)]
     if not sections:
         return item
 
@@ -202,7 +227,7 @@ def _parse_mod_section(item: Item, sec: list[str]) -> None:
         if annot:
             current = annot.groupdict()
             continue
-        template, values = normalize_stat(s)
+        template, values, ranges = normalize_stat(s)
         kind, affix = _classify(current)
         mod = Modifier(
             text=template,
@@ -212,6 +237,7 @@ def _parse_mod_section(item: Item, sec: list[str]) -> None:
             tier=int(current["tier"]) if current and current.get("tier") else None,
             name=current.get("name") if current else None,
             raw=s,
+            ranges=ranges,
         )
         _add_mod(item, mod)
 

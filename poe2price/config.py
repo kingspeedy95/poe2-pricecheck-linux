@@ -19,6 +19,9 @@ class Config:
     # pynput hotkey spec. Pressed while hovering an item in-game.
     hotkey: str = "<ctrl>+d"
 
+    # Listing status to search: "online" (default) or "any" (include offline).
+    status: str = "online"
+
     # The trade API sits behind Cloudflare. A logged-in session cookie makes
     # requests reliable. Copy POESESSID from your browser cookies for
     # pathofexile.com (DevTools -> Application -> Cookies).
@@ -35,7 +38,7 @@ class Config:
     max_listings: int = 10
 
     @classmethod
-    def load(cls) -> "Config":
+    def load(cls) -> Config:
         """Load config, creating a default file on first run."""
         if os.path.exists(CONFIG_PATH):
             with open(CONFIG_PATH, encoding="utf-8") as f:

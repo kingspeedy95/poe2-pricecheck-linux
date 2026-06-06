@@ -1,0 +1,741 @@
+{
+  "result": [
+    {
+      "id": "08c31a5f677da931b5c13b137a5c133473407e18bb939d6eeb0a00d82a17d813",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2026-06-06T03:00:20Z",
+        "stash": {
+          "name": "6",
+          "x": 9,
+          "y": 1
+        },
+        "price": {
+          "type": "~price",
+          "amount": 1,
+          "currency": "exalted"
+        },
+        "account": {
+          "name": "dfasdasdsad#2811",
+          "online": {
+            "league": "Runes of Aldur"
+          },
+          "lastCharacterName": "\u827e\u4f69\u8389\u96c5\u4e36",
+          "language": "zh_TW",
+          "realm": "poe2"
+        },
+        "whisper": "@\u827e\u4f69\u8389\u96c5\u4e36 \u4f60\u597d\uff0c\u6211\u60f3\u8cfc\u8cb7 \u5747\u8861\u4e4b\u7b26 \u6046\u661f\u9805\u934a \u6a19\u50f9 1 exalted \u5728 Runes of Aldur (\u5009\u5eab\u9801 \"6\"; \u4f4d\u7f6e: \u5de6 10, \u4e0a 2)",
+        "whisper_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJlY2M1NTA5ODM3ODRmODBhYmRhNTllMGQ4ZjU4ZTEwOCIsImlzcyI6IkpCeU1SWTQ1SWwiLCJhdWQiOiI1MWM0YWQ1Yy1mYzY0LTRhNDUtOTQyOS1kMjEyZjQ5NzA5YjYiLCJkc3QiOiJcdTgyN2VcdTRmNjlcdTgzODlcdTk2YzVcdTRlMzYiLCJsb2MiOiJ6aF9UVyIsInRvayI6Iml0ZW0iLCJzdWIiOiIwOGMzMWE1ZjY3N2RhOTMxYjVjMTNiMTM3YTVjMTMzNDczNDA3ZTE4YmI5MzlkNmVlYjBhMDBkODJhMTdkODEzIiwiZGF0IjoiNTFlMjk1NTllNDcyYmNlM2RjZDhjMmQ3YjMwYTAxYTYiLCJpYXQiOjE3ODA3MzY5ODksImV4cCI6MTc4MDczNzI4OX0.fJEH9l8VDxT3u5HL2jXem62eTqFIzbOf0o9oSNUZRo8"
+      },
+      "item": {
+        "realm": "poe2",
+        "verified": true,
+        "w": 1,
+        "h": 1,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQW11bGV0cy9VbmlxdWVzL0FzdHJhbWVudGlzIiwidyI6MSwiaCI6MSwic2NhbGUiOjEsInJlYWxtIjoicG9lMiJ9XQ/541d1c98f9/Astramentis.png",
+        "league": "Runes of Aldur",
+        "id": "08c31a5f677da931b5c13b137a5c133473407e18bb939d6eeb0a00d82a17d813",
+        "name": "Astramentis",
+        "typeLine": "Stellar Amulet",
+        "baseType": "Stellar Amulet",
+        "rarity": "Unique",
+        "ilvl": 80,
+        "identified": true,
+        "note": "~price 1 exalted",
+        "properties": [
+          {
+            "name": "Amulet",
+            "values": [],
+            "displayMode": 0,
+            "type": 109
+          }
+        ],
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [
+              [
+                "24",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 62
+          }
+        ],
+        "implicitMods": [
+          "+7 to all [Attributes|Attributes]"
+        ],
+        "explicitMods": [
+          "+68 to all [Attributes|Attributes]",
+          "-4 [Physical] Damage taken from [Attack] Hits"
+        ],
+        "flavourText": [
+          "Mindless rage will shake the world,\r",
+          "Cunning lies will bend it.\r",
+          "Reckless haste will break the world,\r",
+          "And into darkness send it."
+        ],
+        "frameType": 3,
+        "frameTypeId": "Unique",
+        "extended": {
+          "mods": {
+            "explicit": [
+              {
+                "name": "",
+                "tier": "",
+                "level": 1,
+                "magnitudes": [
+                  {
+                    "hash": "explicit.stat_1379411836",
+                    "min": "50",
+                    "max": "100"
+                  }
+                ]
+              },
+              {
+                "name": "",
+                "tier": "",
+                "level": 1,
+                "magnitudes": [
+                  {
+                    "hash": "explicit.stat_3441651621",
+                    "min": "-4",
+                    "max": "-4"
+                  }
+                ]
+              }
+            ],
+            "implicit": [
+              {
+                "name": "",
+                "tier": "",
+                "level": 31,
+                "magnitudes": [
+                  {
+                    "hash": "implicit.stat_1379411836",
+                    "min": "5",
+                    "max": "7"
+                  }
+                ]
+              }
+            ]
+          },
+          "hashes": {
+            "explicit": [
+              [
+                "explicit.stat_1379411836",
+                [
+                  0
+                ]
+              ],
+              [
+                "explicit.stat_3441651621",
+                [
+                  1
+                ]
+              ]
+            ],
+            "implicit": [
+              [
+                "implicit.stat_1379411836",
+                [
+                  0
+                ]
+              ]
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "7fae481215260c7fdc193cf9d97b5f85d4229e41fcb30f465a520385ceed3cac",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2026-06-06T08:01:57Z",
+        "stash": {
+          "name": "~b/o 5 exalted",
+          "x": 11,
+          "y": 0
+        },
+        "price": {
+          "type": "~b/o",
+          "amount": 5,
+          "currency": "exalted"
+        },
+        "account": {
+          "name": "jwmkatheboss#1060",
+          "online": {
+            "league": "Runes of Aldur"
+          },
+          "lastCharacterName": "MrChanandlerBong",
+          "language": "en_US",
+          "realm": "poe2"
+        },
+        "whisper": "@MrChanandlerBong Hi, I would like to buy your Astramentis Stellar Amulet listed for 5 exalted in Runes of Aldur (stash tab \"~b/o 5 exalted\"; position: left 12, top 1)",
+        "whisper_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJlY2M1NTA5ODM3ODRmODBhYmRhNTllMGQ4ZjU4ZTEwOCIsImlzcyI6IkpCeU1SWTQ1SWwiLCJhdWQiOiI1MWM0YWQ1Yy1mYzY0LTRhNDUtOTQyOS1kMjEyZjQ5NzA5YjYiLCJkc3QiOiJNckNoYW5hbmRsZXJCb25nIiwibG9jIjoiZW5fVVMiLCJ0b2siOiJpdGVtIiwic3ViIjoiN2ZhZTQ4MTIxNTI2MGM3ZmRjMTkzY2Y5ZDk3YjVmODVkNDIyOWU0MWZjYjMwZjQ2NWE1MjAzODVjZWVkM2NhYyIsImRhdCI6IjllYzJlNGY3NjVmYmNhNzkyNTU2NTE0ZmEwOGU3OWEwIiwiaWF0IjoxNzgwNzM2OTg5LCJleHAiOjE3ODA3MzcyODl9.1BpfnsrWWD9cklNbJ1Ao1ovh3sBr7GZG1vFygpd56jY"
+      },
+      "item": {
+        "realm": "poe2",
+        "verified": true,
+        "w": 1,
+        "h": 1,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQW11bGV0cy9VbmlxdWVzL0FzdHJhbWVudGlzIiwidyI6MSwiaCI6MSwic2NhbGUiOjEsInJlYWxtIjoicG9lMiJ9XQ/541d1c98f9/Astramentis.png",
+        "league": "Runes of Aldur",
+        "id": "7fae481215260c7fdc193cf9d97b5f85d4229e41fcb30f465a520385ceed3cac",
+        "name": "Astramentis",
+        "typeLine": "Stellar Amulet",
+        "baseType": "Stellar Amulet",
+        "rarity": "Unique",
+        "ilvl": 76,
+        "identified": true,
+        "properties": [
+          {
+            "name": "Amulet",
+            "values": [],
+            "displayMode": 0,
+            "type": 109
+          }
+        ],
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [
+              [
+                "24",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 62
+          }
+        ],
+        "implicitMods": [
+          "+7 to all [Attributes|Attributes]"
+        ],
+        "explicitMods": [
+          "+50 to all [Attributes|Attributes]",
+          "-4 [Physical] Damage taken from [Attack] Hits"
+        ],
+        "flavourText": [
+          "Mindless rage will shake the world,\r",
+          "Cunning lies will bend it.\r",
+          "Reckless haste will break the world,\r",
+          "And into darkness send it."
+        ],
+        "frameType": 3,
+        "frameTypeId": "Unique",
+        "extended": {
+          "mods": {
+            "explicit": [
+              {
+                "name": "",
+                "tier": "",
+                "level": 1,
+                "magnitudes": [
+                  {
+                    "hash": "explicit.stat_1379411836",
+                    "min": "50",
+                    "max": "100"
+                  }
+                ]
+              },
+              {
+                "name": "",
+                "tier": "",
+                "level": 1,
+                "magnitudes": [
+                  {
+                    "hash": "explicit.stat_3441651621",
+                    "min": "-4",
+                    "max": "-4"
+                  }
+                ]
+              }
+            ],
+            "implicit": [
+              {
+                "name": "",
+                "tier": "",
+                "level": 31,
+                "magnitudes": [
+                  {
+                    "hash": "implicit.stat_1379411836",
+                    "min": "5",
+                    "max": "7"
+                  }
+                ]
+              }
+            ]
+          },
+          "hashes": {
+            "explicit": [
+              [
+                "explicit.stat_1379411836",
+                [
+                  0
+                ]
+              ],
+              [
+                "explicit.stat_3441651621",
+                [
+                  1
+                ]
+              ]
+            ],
+            "implicit": [
+              [
+                "implicit.stat_1379411836",
+                [
+                  0
+                ]
+              ]
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "a3544321e275aa747fc2f42ce95cee847488013d2ddc3abaeb8370d4c167e348",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2026-06-06T04:34:42Z",
+        "stash": {
+          "name": "~price 5 exalted",
+          "x": 11,
+          "y": 0
+        },
+        "price": {
+          "type": "~price",
+          "amount": 5,
+          "currency": "exalted"
+        },
+        "account": {
+          "name": "Skreddd#2293",
+          "online": {
+            "league": "Runes of Aldur"
+          },
+          "lastCharacterName": "IskreddIi",
+          "language": "en_US",
+          "realm": "poe2"
+        },
+        "whisper": "@IskreddIi Hi, I would like to buy your Astramentis Stellar Amulet listed for 5 exalted in Runes of Aldur (stash tab \"~price 5 exalted\"; position: left 12, top 1)",
+        "whisper_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJlY2M1NTA5ODM3ODRmODBhYmRhNTllMGQ4ZjU4ZTEwOCIsImlzcyI6IkpCeU1SWTQ1SWwiLCJhdWQiOiI1MWM0YWQ1Yy1mYzY0LTRhNDUtOTQyOS1kMjEyZjQ5NzA5YjYiLCJkc3QiOiJJc2tyZWRkSWkiLCJsb2MiOiJlbl9VUyIsInRvayI6Iml0ZW0iLCJzdWIiOiJhMzU0NDMyMWUyNzVhYTc0N2ZjMmY0MmNlOTVjZWU4NDc0ODgwMTNkMmRkYzNhYmFlYjgzNzBkNGMxNjdlMzQ4IiwiZGF0IjoiMTZjMGQwMjg0ZGFhNTQwYThhOTkwMWZiNzQyYWI0ZWYiLCJpYXQiOjE3ODA3MzY5ODksImV4cCI6MTc4MDczNzI4OX0.GPnFalXO1ekIvB-zV89Lt7tMXEiXTdwElkYxkfinv4k"
+      },
+      "item": {
+        "realm": "poe2",
+        "verified": true,
+        "w": 1,
+        "h": 1,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQW11bGV0cy9VbmlxdWVzL0FzdHJhbWVudGlzIiwidyI6MSwiaCI6MSwic2NhbGUiOjEsInJlYWxtIjoicG9lMiJ9XQ/541d1c98f9/Astramentis.png",
+        "league": "Runes of Aldur",
+        "id": "a3544321e275aa747fc2f42ce95cee847488013d2ddc3abaeb8370d4c167e348",
+        "name": "Astramentis",
+        "typeLine": "Stellar Amulet",
+        "baseType": "Stellar Amulet",
+        "rarity": "Unique",
+        "ilvl": 81,
+        "identified": true,
+        "properties": [
+          {
+            "name": "Amulet",
+            "values": [],
+            "displayMode": 0,
+            "type": 109
+          }
+        ],
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [
+              [
+                "24",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 62
+          }
+        ],
+        "implicitMods": [
+          "+5 to all [Attributes|Attributes]"
+        ],
+        "explicitMods": [
+          "+64 to all [Attributes|Attributes]",
+          "-4 [Physical] Damage taken from [Attack] Hits"
+        ],
+        "flavourText": [
+          "Mindless rage will shake the world,\r",
+          "Cunning lies will bend it.\r",
+          "Reckless haste will break the world,\r",
+          "And into darkness send it."
+        ],
+        "frameType": 3,
+        "frameTypeId": "Unique",
+        "extended": {
+          "mods": {
+            "explicit": [
+              {
+                "name": "",
+                "tier": "",
+                "level": 1,
+                "magnitudes": [
+                  {
+                    "hash": "explicit.stat_1379411836",
+                    "min": "50",
+                    "max": "100"
+                  }
+                ]
+              },
+              {
+                "name": "",
+                "tier": "",
+                "level": 1,
+                "magnitudes": [
+                  {
+                    "hash": "explicit.stat_3441651621",
+                    "min": "-4",
+                    "max": "-4"
+                  }
+                ]
+              }
+            ],
+            "implicit": [
+              {
+                "name": "",
+                "tier": "",
+                "level": 31,
+                "magnitudes": [
+                  {
+                    "hash": "implicit.stat_1379411836",
+                    "min": "5",
+                    "max": "7"
+                  }
+                ]
+              }
+            ]
+          },
+          "hashes": {
+            "explicit": [
+              [
+                "explicit.stat_1379411836",
+                [
+                  0
+                ]
+              ],
+              [
+                "explicit.stat_3441651621",
+                [
+                  1
+                ]
+              ]
+            ],
+            "implicit": [
+              [
+                "implicit.stat_1379411836",
+                [
+                  0
+                ]
+              ]
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "e67e4aed419951bdcb47f514632afb867075533bb190536c2a26c2c6b13a037a",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2026-06-06T05:23:58Z",
+        "stash": {
+          "name": "~b/o 7 exalted",
+          "x": 11,
+          "y": 7
+        },
+        "price": {
+          "type": "~b/o",
+          "amount": 7,
+          "currency": "exalted"
+        },
+        "account": {
+          "name": "ANGEL MEGAS#8588",
+          "online": {
+            "league": "Runes of Aldur"
+          },
+          "lastCharacterName": "Dream_Megas",
+          "language": "es_ES",
+          "realm": "poe2"
+        },
+        "whisper": "@Dream_Megas Hola, quisiera comprar tu Astramentis Amuleto estelar listado por 7 exalted en Runes of Aldur (pesta\u00f1a de alijo \"~b/o 7 exalted\"; posici\u00f3n: izquierda 12, arriba 8)",
+        "whisper_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJlY2M1NTA5ODM3ODRmODBhYmRhNTllMGQ4ZjU4ZTEwOCIsImlzcyI6IkpCeU1SWTQ1SWwiLCJhdWQiOiI1MWM0YWQ1Yy1mYzY0LTRhNDUtOTQyOS1kMjEyZjQ5NzA5YjYiLCJkc3QiOiJEcmVhbV9NZWdhcyIsImxvYyI6ImVzX0VTIiwidG9rIjoiaXRlbSIsInN1YiI6ImU2N2U0YWVkNDE5OTUxYmRjYjQ3ZjUxNDYzMmFmYjg2NzA3NTUzM2JiMTkwNTM2YzJhMjZjMmM2YjEzYTAzN2EiLCJkYXQiOiI5NzE0MzQxNzE0ZmIyZjQ2MjI2ZTI1Y2QxOWU4NDJhYSIsImlhdCI6MTc4MDczNjk4OSwiZXhwIjoxNzgwNzM3Mjg5fQ.SXUdR1ZhwGljSGCGoK9ccLeWzvtv2P9Vk22XBriJxxo"
+      },
+      "item": {
+        "realm": "poe2",
+        "verified": true,
+        "w": 1,
+        "h": 1,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQW11bGV0cy9VbmlxdWVzL0FzdHJhbWVudGlzIiwidyI6MSwiaCI6MSwic2NhbGUiOjEsInJlYWxtIjoicG9lMiJ9XQ/541d1c98f9/Astramentis.png",
+        "league": "Runes of Aldur",
+        "id": "e67e4aed419951bdcb47f514632afb867075533bb190536c2a26c2c6b13a037a",
+        "name": "Astramentis",
+        "typeLine": "Stellar Amulet",
+        "baseType": "Stellar Amulet",
+        "rarity": "Unique",
+        "ilvl": 80,
+        "identified": true,
+        "properties": [
+          {
+            "name": "Amulet",
+            "values": [],
+            "displayMode": 0,
+            "type": 109
+          }
+        ],
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [
+              [
+                "24",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 62
+          }
+        ],
+        "implicitMods": [
+          "+5 to all [Attributes|Attributes]"
+        ],
+        "explicitMods": [
+          "+73 to all [Attributes|Attributes]",
+          "-4 [Physical] Damage taken from [Attack] Hits"
+        ],
+        "flavourText": [
+          "Mindless rage will shake the world,\r",
+          "Cunning lies will bend it.\r",
+          "Reckless haste will break the world,\r",
+          "And into darkness send it."
+        ],
+        "frameType": 3,
+        "frameTypeId": "Unique",
+        "extended": {
+          "mods": {
+            "explicit": [
+              {
+                "name": "",
+                "tier": "",
+                "level": 1,
+                "magnitudes": [
+                  {
+                    "hash": "explicit.stat_1379411836",
+                    "min": "50",
+                    "max": "100"
+                  }
+                ]
+              },
+              {
+                "name": "",
+                "tier": "",
+                "level": 1,
+                "magnitudes": [
+                  {
+                    "hash": "explicit.stat_3441651621",
+                    "min": "-4",
+                    "max": "-4"
+                  }
+                ]
+              }
+            ],
+            "implicit": [
+              {
+                "name": "",
+                "tier": "",
+                "level": 31,
+                "magnitudes": [
+                  {
+                    "hash": "implicit.stat_1379411836",
+                    "min": "5",
+                    "max": "7"
+                  }
+                ]
+              }
+            ]
+          },
+          "hashes": {
+            "explicit": [
+              [
+                "explicit.stat_1379411836",
+                [
+                  0
+                ]
+              ],
+              [
+                "explicit.stat_3441651621",
+                [
+                  1
+                ]
+              ]
+            ],
+            "implicit": [
+              [
+                "implicit.stat_1379411836",
+                [
+                  0
+                ]
+              ]
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "15d908198081d71c7ccb42c0f7c9790979fc68154190f259b74287f4d930a36b",
+      "listing": {
+        "method": "psapi",
+        "indexed": "2026-06-06T05:23:58Z",
+        "stash": {
+          "name": "~b/o 7 exalted",
+          "x": 9,
+          "y": 7
+        },
+        "price": {
+          "type": "~b/o",
+          "amount": 7,
+          "currency": "exalted"
+        },
+        "account": {
+          "name": "ANGEL MEGAS#8588",
+          "online": {
+            "league": "Runes of Aldur"
+          },
+          "lastCharacterName": "Dream_Megas",
+          "language": "es_ES",
+          "realm": "poe2"
+        },
+        "in_demand": true,
+        "whisper": "@Dream_Megas Hola, quisiera comprar tu Astramentis Amuleto estelar listado por 7 exalted en Runes of Aldur (pesta\u00f1a de alijo \"~b/o 7 exalted\"; posici\u00f3n: izquierda 10, arriba 8)",
+        "whisper_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJlY2M1NTA5ODM3ODRmODBhYmRhNTllMGQ4ZjU4ZTEwOCIsImlzcyI6IkpCeU1SWTQ1SWwiLCJhdWQiOiI1MWM0YWQ1Yy1mYzY0LTRhNDUtOTQyOS1kMjEyZjQ5NzA5YjYiLCJkc3QiOiJEcmVhbV9NZWdhcyIsImxvYyI6ImVzX0VTIiwidG9rIjoiaXRlbSIsInN1YiI6IjE1ZDkwODE5ODA4MWQ3MWM3Y2NiNDJjMGY3Yzk3OTA5NzlmYzY4MTU0MTkwZjI1OWI3NDI4N2Y0ZDkzMGEzNmIiLCJkYXQiOiJmN2Y0OWM5ODY2ZGQxOTM1MmM0YmQ5OGViZTAwZGM5YyIsImlhdCI6MTc4MDczNjk4OSwiZXhwIjoxNzgwNzM3Mjg5fQ.VMMjd9AkEqkQAALznE8KpJFQBOpzlJGNGQ0Dnpn_1Rc"
+      },
+      "item": {
+        "realm": "poe2",
+        "verified": true,
+        "w": 1,
+        "h": 1,
+        "icon": "https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQW11bGV0cy9VbmlxdWVzL0FzdHJhbWVudGlzIiwidyI6MSwiaCI6MSwic2NhbGUiOjEsInJlYWxtIjoicG9lMiJ9XQ/541d1c98f9/Astramentis.png",
+        "league": "Runes of Aldur",
+        "id": "15d908198081d71c7ccb42c0f7c9790979fc68154190f259b74287f4d930a36b",
+        "name": "Astramentis",
+        "typeLine": "Stellar Amulet",
+        "baseType": "Stellar Amulet",
+        "rarity": "Unique",
+        "ilvl": 80,
+        "identified": true,
+        "properties": [
+          {
+            "name": "Amulet",
+            "values": [],
+            "displayMode": 0,
+            "type": 109
+          }
+        ],
+        "requirements": [
+          {
+            "name": "Level",
+            "values": [
+              [
+                "24",
+                0
+              ]
+            ],
+            "displayMode": 0,
+            "type": 62
+          }
+        ],
+        "implicitMods": [
+          "+5 to all [Attributes|Attributes]"
+        ],
+        "explicitMods": [
+          "+96 to all [Attributes|Attributes]",
+          "-4 [Physical] Damage taken from [Attack] Hits"
+        ],
+        "flavourText": [
+          "Mindless rage will shake the world,\r",
+          "Cunning lies will bend it.\r",
+          "Reckless haste will break the world,\r",
+          "And into darkness send it."
+        ],
+        "frameType": 3,
+        "frameTypeId": "Unique",
+        "extended": {
+          "mods": {
+            "explicit": [
+              {
+                "name": "",
+                "tier": "",
+                "level": 1,
+                "magnitudes": [
+                  {
+                    "hash": "explicit.stat_1379411836",
+                    "min": "50",
+                    "max": "100"
+                  }
+                ]
+              },
+              {
+                "name": "",
+                "tier": "",
+                "level": 1,
+                "magnitudes": [
+                  {
+                    "hash": "explicit.stat_3441651621",
+                    "min": "-4",
+                    "max": "-4"
+                  }
+                ]
+              }
+            ],
+            "implicit": [
+              {
+                "name": "",
+                "tier": "",
+                "level": 31,
+                "magnitudes": [
+                  {
+                    "hash": "implicit.stat_1379411836",
+                    "min": "5",
+                    "max": "7"
+                  }
+                ]
+              }
+            ]
+          },
+          "hashes": {
+            "explicit": [
+              [
+                "explicit.stat_1379411836",
+                [
+                  0
+                ]
+              ],
+              [
+                "explicit.stat_3441651621",
+                [
+                  1
+                ]
+              ]
+            ],
+            "implicit": [
+              [
+                "implicit.stat_1379411836",
+                [
+                  0
+                ]
+              ]
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

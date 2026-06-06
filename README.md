@@ -11,15 +11,25 @@ to your cursor.
 > **Why this exists.** Exiled Exchange 2 relies on `uiohook-napi` to inject
 > the copy keystroke. On some Linux/X11 setups that injection silently fails
 > ("No item text found in clipboard") even though the game accepts synthetic
-> input from `xdotool`. This tool uses `xdotool` for the copy, which works.
+> input via XTEST. This tool injects the copy with `pynput` (the same XTEST
+> path), which works — no external command-line tools required.
 
-## Status
+## Features
 
-- ✅ **Phase 1** — clipboard copy, item parser (handles *Advanced Item
-  Descriptions*), PyQt popup, and name/base price lookups (currency,
-  uniques, gems, waystones).
-- 🚧 **Phase 2** — stat-ID matching so rare/magic items can be priced by
-  their modifiers.
+- **Whole-item search**, not just the base: rares/magics are priced by their
+  modifiers via trade stat-IDs, with **pseudo-stats** (total elemental
+  resistance, life, mana, ES, attributes) and **relaxed (~90%) min rolls**,
+  the way Exiled Exchange 2 / Awakened PoE Trade do it.
+- **Currency** priced through the bulk **exchange** endpoint (proper ratios).
+- **Price summary** — median price (robust to lowball listings) + listing
+  count, with a "few data points" warning when the sample is thin.
+- **Search transparency** — the popup shows *what* it searched by
+  (e.g. `Sapphire Ring + 2 stat filters`, or `base only — no mods matched`).
+- **Rate-limit aware** — adaptive per-endpoint throttling + retry/back-off.
+- **Draggable popup** that remembers its position, with an ✕ button.
+- **System-tray icon** (quit), a status toast (waiting for / detected PoE2),
+  and a **single-instance** guard.
+- **Taskbar launcher** + optional autostart (`packaging/install.sh`).
 
 ## Requirements
 
@@ -57,10 +67,14 @@ A config file is created on first run at
 {
   "league": "Runes of Aldur",
   "hotkey": "<ctrl>+d",
+  "status": "online",
   "poesessid": "",
   "max_listings": 10
 }
 ```
+
+- `status` — `"online"` (default) or `"any"` to include offline listings.
+- `max_listings` — how many of the cheapest listings to fetch/show.
 
 The trade API is behind Cloudflare. For reliable requests, paste your
 **POESESSID** cookie:
@@ -79,17 +93,31 @@ python -m poe2price
 ```
 
 Then hover an item in PoE2 and press your hotkey. **Enter** in the popup opens
-the search on the trade site; **Esc** closes it.
+the search on the trade site; **drag** to move it; **Esc** or **✕** closes it.
+The app lives in the background with a system-tray icon (right-click → Quit).
+
+A log is written to `~/.local/state/poe2-pricecheck/poe2price.log`.
+
+### Taskbar launcher / autostart
+
+```bash
+packaging/install.sh              # add a menu launcher (pin it to the taskbar)
+packaging/install.sh --autostart  # also start automatically on login
+packaging/install.sh --uninstall  # remove everything
+```
 
 ## Develop
 
 ```bash
 pip install -e ".[dev]"
-pytest
+pytest          # 100+ tests
+ruff check .    # lint
 ```
 
-The parser is covered by tests built from real clipboard captures in
-`tests/fixtures/`.
+Tests run headless (Qt uses the offscreen platform via `tests/conftest.py`) and
+are built from real clipboard captures and live API responses in
+`tests/fixtures/`. CI runs `pytest` + `ruff` on push (see
+`.github/workflows/ci.yml`).
 
 ## License
 
