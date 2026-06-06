@@ -16,7 +16,6 @@ from __future__ import annotations
 import sys
 import threading
 
-from pynput import keyboard
 from PyQt6 import QtCore, QtWidgets
 
 from .clipboard import SENTINEL, send_copy_keystroke
@@ -190,6 +189,13 @@ class App(QtCore.QObject):
 
 
 def main() -> int:
+    # Handle --version before touching Qt/pynput so it works headlessly (used to
+    # smoke-test the packaged AppImage in CI).
+    if "--version" in sys.argv[1:]:
+        from poe2price import __version__
+        print(f"poe2-pricecheck {__version__}")
+        return 0
+
     setup_logging()
     cfg = Config.load()
     log.info("Starting poe2-pricecheck (league=%r, hotkey=%r)",
@@ -215,6 +221,10 @@ def main() -> int:
 
     def on_activate() -> None:
         app.hotkey_pressed.emit()
+
+    # Imported here (not at module top) so --version and headless imports don't
+    # require an X display, which pynput needs at import time.
+    from pynput import keyboard
 
     hotkey = keyboard.GlobalHotKeys({cfg.hotkey: on_activate})
     hotkey.daemon = True

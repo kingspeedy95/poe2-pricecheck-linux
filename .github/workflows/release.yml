@@ -10,7 +10,31 @@ permissions:
   contents: write  # needed to create the GitHub Release
 
 jobs:
+  # Gate the release on the full test suite + lint.
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install runtime libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxcb-cursor0 libegl1 libgl1
+      - name: Install package + dev deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check .
+      - name: Test
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: pytest -q
+
   appimage:
+    needs: test  # only build/publish if tests passed
     runs-on: ubuntu-22.04  # older runner -> wider glibc compatibility
     steps:
       - uses: actions/checkout@v4
@@ -35,6 +59,19 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           packaging/build_appimage.sh "$VERSION"
+
+      - name: Smoke-test the AppImage
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          APP="dist/poe2-pricecheck-${VERSION}-x86_64.AppImage"
+          # Launch the packaged binary headlessly; verifies the bundle loads
+          # (Python + PyQt6) and reports the expected version.
+          out="$(APPIMAGE_EXTRACT_AND_RUN=1 "$APP" --version)"
+          echo "AppImage reports: $out"
+          echo "$out" | grep -q "$VERSION" || {
+            echo "ERROR: AppImage --version did not report ${VERSION}" >&2
+            exit 1
+          }
 
       - name: Generate changelog
         run: |

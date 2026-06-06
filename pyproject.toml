@@ -1,6 +1,6 @@
 [project]
 name = "poe2-pricecheck-linux"
-version = "0.1.0"
+version = "0.2.0"
 description = "A Linux-first price checker for Path of Exile 2"
 readme = "README.md"
 requires-python = ">=3.10"
