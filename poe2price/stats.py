@@ -35,7 +35,7 @@ _MAX_AGE_SECONDS = 7 * 24 * 3600  # refresh weekly
 
 # How far below the actual roll to set a filter's min, so we find
 # comparable-or-slightly-worse listings instead of over-constraining to the
-# exact roll (mirrors Exiled Exchange 2's default behaviour).
+# exact roll.
 _ROLL_RELAX = 0.9
 
 # Canonical pseudo-stat texts (post-:func:`canon`), keyed by a short name.
@@ -131,7 +131,7 @@ def _relax(value: float, factor: float = _ROLL_RELAX) -> float:
 
 
 def build_stat_filters(item, index: StatsIndex) -> list[dict]:
-    """Build trade2 stat filters for *item*, EE2-style.
+    """Build trade2 stat filters for *item*.
 
     Resistances/life/attributes are folded into pseudo-totals (when the catalog
     has the pseudo); the contributing mods are then dropped in favour of the

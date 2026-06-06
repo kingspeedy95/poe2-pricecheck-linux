@@ -1,7 +1,6 @@
 """Tests for the copy-keystroke helper (no real key injection)."""
 
-import poe2price.clipboard as clip
-from poe2price.clipboard import SENTINEL, send_copy_keystroke
+from poe2price.clipboard import SENTINEL, _emit_copy
 
 
 class _FakeController:
@@ -9,10 +8,10 @@ class _FakeController:
         self.events = []
 
     def press(self, key):
-        self.events.append(("press", str(key)))
+        self.events.append(("press", key))
 
     def release(self, key):
-        self.events.append(("release", str(key)))
+        self.events.append(("release", key))
 
 
 def test_sentinel_is_distinctive():
@@ -21,12 +20,13 @@ def test_sentinel_is_distinctive():
     assert SENTINEL.startswith("\x00")
 
 
-def test_send_copy_keystroke_presses_ctrl_c(monkeypatch):
+def test_emit_copy_presses_ctrl_c_in_order():
+    # Uses a sentinel ctrl key so the test never imports pynput (no X needed).
     fake = _FakeController()
-    monkeypatch.setattr(clip, "_controller", lambda: fake)
-    send_copy_keystroke()
-    kinds = [kind for kind, _ in fake.events]
-    # ctrl down, c down, c up, ctrl up — press before release for both.
-    assert kinds == ["press", "press", "release", "release"]
-    # 'c' is pressed while ctrl is still held.
-    assert any("press" == k and "c" in v for k, v in fake.events)
+    _emit_copy(fake, "CTRL")
+    assert fake.events == [
+        ("press", "CTRL"),
+        ("press", "c"),
+        ("release", "c"),
+        ("release", "CTRL"),
+    ]

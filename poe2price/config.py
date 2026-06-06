@@ -12,7 +12,7 @@ CONFIG_PATH = os.path.join(CONFIG_DIR, "config.json")
 
 @dataclass
 class Config:
-    # Defaults seeded from the user's Exiled Exchange 2 install.
+    # Defaults; the league can be changed in the config file.
     league: str = "Runes of Aldur"
     language: str = "en"
 

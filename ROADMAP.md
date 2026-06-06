@@ -97,7 +97,7 @@ Goal: price items by their modifiers, like the real trade site.
   numbered listings, "+N more". Remaining: item/currency **icons** (needs async
   image fetch + cache). `poe2price/theme.py` + `modview.py`; preview via
   `tools/render_popup.py`. *(requested, priority)*
-- ⬜ **"Modify the search" panel** — an interactive filter editor like EE2: per
+- ⬜ **"Modify the search" panel** — an interactive filter editor: per
   mod/pseudo toggle on/off, set min/max per filter (spin/slider), choose
   base-type on/off, item level, rarity, corrupted, `online` vs `any`, then a
   **re-run search** button. Builds on the M2 stat filters + the search-summary

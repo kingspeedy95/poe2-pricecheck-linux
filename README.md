@@ -8,18 +8,18 @@ Press a hotkey while hovering an item in-game; the tool copies the item,
 parses it, queries the official trade API, and shows prices in a popup next
 to your cursor.
 
-> **Why this exists.** Exiled Exchange 2 relies on `uiohook-napi` to inject
-> the copy keystroke. On some Linux/X11 setups that injection silently fails
-> ("No item text found in clipboard") even though the game accepts synthetic
-> input via XTEST. This tool injects the copy with `pynput` (the same XTEST
-> path), which works — no external command-line tools required.
+> **Why this exists.** On some Linux/X11 setups, the synthetic copy keystroke
+> from existing overlays never reaches the focused game window, so the item
+> text never lands on the clipboard. This tool injects the copy with `pynput`
+> via XTEST, which does reach the Wine/Proton game window — and uses no external
+> command-line tools.
 
 ## Features
 
 - **Whole-item search**, not just the base: rares/magics are priced by their
   modifiers via trade stat-IDs, with **pseudo-stats** (total elemental
-  resistance, life, mana, ES, attributes) and **relaxed (~90%) min rolls**,
-  the way Exiled Exchange 2 / Awakened PoE Trade do it.
+  resistance, life, mana, ES, attributes) and **relaxed (~90%) min rolls**, so
+  prices reflect the item's actual rolls.
 - **Currency** priced through the bulk **exchange** endpoint (proper ratios).
 - **Price summary** — median price (robust to lowball listings) + listing
   count, with a "few data points" warning when the sample is thin.
