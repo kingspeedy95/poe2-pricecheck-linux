@@ -419,11 +419,13 @@ def test_exchange_listings_respects_limit_and_skips_bad():
     data = {"result": {
         "a": {"listing": {"offers": [{"exchange": {"currency": "exalted", "amount": 5},
                                       "item": {"currency": "x", "amount": 0}}]}},  # bad: 0
+        "missing_have": {"listing": {"offers": [{"exchange": {"currency": "exalted"},
+                                      "item": {"currency": "x", "amount": 2}}]}},  # no have amount
         "b": {"listing": {"offers": [{"exchange": {"currency": "exalted", "amount": 6},
                                       "item": {"currency": "x", "amount": 3}}]}},
     }}
     listings = _exchange_listings(data, limit=10)
-    assert [x.amount for x in listings] == [2.0]  # zero-amount entry skipped
+    assert [x.amount for x in listings] == [2.0]  # zero- and missing-amount entries skipped
 
 
 @pytest.mark.parametrize("fixture", [

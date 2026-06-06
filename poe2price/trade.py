@@ -485,7 +485,7 @@ def _exchange_listings(data: dict, limit: int) -> list[Listing]:
         get = offer.get("item") or {}           # what they receive (want)
         have_amount = pay.get("amount")
         want_amount = get.get("amount")
-        if not want_amount:
+        if not want_amount or have_amount is None:
             continue
         unit_price = have_amount / want_amount  # have-currency per 1 want
         account = (listing.get("account") or {}).get("name")
