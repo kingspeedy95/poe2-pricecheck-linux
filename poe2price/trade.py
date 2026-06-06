@@ -92,6 +92,25 @@ class PriceSummary:
         return 0 < self.count < _LOW_CONFIDENCE_COUNT
 
     @property
+    def headline(self) -> str:
+        """The big number: ``~81 exalted`` (or a no-data note)."""
+        if not self.count or self.median is None:
+            return "no price data"
+        return f"~{_fmt_amount(self.median)} {self.currency or ''}".strip()
+
+    @property
+    def detail(self) -> str:
+        """The secondary line: listing count, low, confidence."""
+        if not self.count or self.median is None:
+            return ""
+        parts = [f"{self.count} listing" + ("s" if self.count != 1 else "")]
+        if self.low is not None and self.low != self.median:
+            parts.append(f"low {_fmt_amount(self.low)}")
+        if self.low_confidence:
+            parts.append("few data points")
+        return " · ".join(parts)
+
+    @property
     def text(self) -> str:
         if not self.count or self.median is None:
             return "no price data"

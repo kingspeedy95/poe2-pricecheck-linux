@@ -91,12 +91,12 @@ Goal: price items by their modifiers, like the real trade site.
 ---
 
 ## Milestone 4: UX / UI polish
-- ⬜ **Rich trade-tool UI** — rework the popup to look like Exiled Exchange 2 /
-  Awakened PoE Trade, but with **our own PoE2-exile theme** (dark + gold).
-  More visual structure and icons: item header with class/rarity icon, mod rows
-  with affix/tier badges and roll-quality bars, currency icons beside prices,
-  listing age + seller, sectioned layout (item · filters · results).
-  *(requested, priority)*
+- 🚧 **Rich trade-tool UI** — themed popup (dark + gold) shipped: rarity-coloured
+  name, base·rarity·ilvl meta, gold **price band** (median + count), **mods
+  section** with affix/tier tags and **roll-quality colour bars**, divider,
+  numbered listings, "+N more". Remaining: item/currency **icons** (needs async
+  image fetch + cache). `poe2price/theme.py` + `modview.py`; preview via
+  `tools/render_popup.py`. *(requested, priority)*
 - ⬜ **"Modify the search" panel** — an interactive filter editor like EE2: per
   mod/pseudo toggle on/off, set min/max per filter (spin/slider), choose
   base-type on/off, item level, rarity, corrupted, `online` vs `any`, then a

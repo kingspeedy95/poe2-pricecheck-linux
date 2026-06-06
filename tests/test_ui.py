@@ -23,6 +23,18 @@ def test_show_result_lists_prices(window):
     assert window._url == "http://x"
 
 
+def test_show_result_more_indicator(window):
+    listings = [Listing(i, "exalted", f"s{i}", f"@s{i}") for i in range(12)]
+    window.show_result(Item(rarity="Unique", name="X"), listings, "http://x", "")
+    assert "+3 more" in window._body.text()  # 12 - 9 shown
+
+
+def test_show_result_no_more_indicator_when_few(window):
+    listings = [Listing(i, "exalted", f"s{i}", f"@s{i}") for i in range(4)]
+    window.show_result(Item(rarity="Unique", name="X"), listings, "http://x", "")
+    assert "more" not in window._body.text()
+
+
 def test_show_result_empty(window):
     window.show_result(Item(rarity="Unique", name="X"), [], "http://x")
     assert "no online listings" in window._body.text()

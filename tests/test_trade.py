@@ -328,6 +328,19 @@ def test_summarize_empty():
     assert s.text == "no price data"
 
 
+def test_summary_headline_and_detail():
+    listings = [Listing(i, "exalted", "a", "@a") for i in (40, 50, 60, 80)]
+    s = summarize(listings)
+    assert s.headline == "~55 exalted"          # median of 40,50,60,80
+    assert "4 listings" in s.detail
+    assert "low 40" in s.detail
+
+
+def test_summary_headline_no_data():
+    assert summarize([]).headline == "no price data"
+    assert summarize([]).detail == ""
+
+
 def test_summarize_low_confidence_flag():
     s = summarize([Listing(5, "exalted", "a", "@a"), Listing(7, "exalted", "b", "@b")])
     assert s.low_confidence is True
