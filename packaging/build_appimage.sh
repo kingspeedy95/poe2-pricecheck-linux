@@ -27,7 +27,9 @@ with open("pyproject.toml","rb") as f:
 echo ">> Building $APP_ID $VERSION ($ARCH)"
 
 # -- 1. PyInstaller (onedir) ------------------------------------------------
-python3 -m pip install --quiet --upgrade pyinstaller
+# Pinned, no --upgrade, so the build tool can't change underneath us.
+PYINSTALLER_VERSION="6.20.0"
+python3 -m pip install --quiet "pyinstaller==$PYINSTALLER_VERSION"
 rm -rf build dist/"$APP_ID" "$APP_ID.spec"
 pyinstaller --noconfirm --clean \
     --name "$APP_ID" \
@@ -65,11 +67,25 @@ EOF
 chmod +x "$APPDIR/AppRun"
 
 # -- 3. Pack with appimagetool ---------------------------------------------
+# Pinned to a tagged release (not the rolling "continuous" build) and verified
+# against a known SHA-256 before we make it executable.
+APPIMAGETOOL_VERSION="1.9.1"
+APPIMAGETOOL_SHA256_x86_64="ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0"
+
 TOOL="build/appimagetool-$ARCH.AppImage"
 if [[ ! -x "$TOOL" ]]; then
-    echo ">> Fetching appimagetool"
+    echo ">> Fetching appimagetool $APPIMAGETOOL_VERSION"
     curl -fsSL -o "$TOOL" \
-        "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$ARCH.AppImage"
+        "https://github.com/AppImage/appimagetool/releases/download/$APPIMAGETOOL_VERSION/appimagetool-$ARCH.AppImage"
+    expected_var="APPIMAGETOOL_SHA256_${ARCH}"
+    expected="${!expected_var:-}"
+    if [[ -z "$expected" ]]; then
+        echo "ERROR: no pinned SHA-256 for arch '$ARCH'; refusing to run unverified appimagetool." >&2
+        rm -f "$TOOL"
+        exit 1
+    fi
+    echo "$expected  $TOOL" | sha256sum -c - \
+        || { echo "ERROR: appimagetool checksum mismatch" >&2; rm -f "$TOOL"; exit 1; }
     chmod +x "$TOOL"
 fi
 
