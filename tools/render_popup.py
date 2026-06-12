@@ -14,7 +14,8 @@ import sys
 from PyQt6 import QtWidgets
 
 from poe2price.parser import Item, Modifier
-from poe2price.trade import Listing
+from poe2price.stats import StatFilter
+from poe2price.trade import Listing, SearchSpec
 from poe2price.ui import PriceWindow
 
 
@@ -57,9 +58,32 @@ def main(outdir: str = "/tmp/poe2popup") -> int:
     unique = Item(rarity="Unique", name="Astramentis", base_type="Stellar Amulet",
                   item_level=84)
 
+    rare_spec = SearchSpec(
+        type="Sapphire Ring", status="online",
+        ilvl_min=82, ilvl_enabled=False,
+        stats=[
+            StatFilter(id="pseudo.life", label="95 total maximum Life", min=85,
+                       kind="pseudo"),
+            StatFilter(id="pseudo.eleres", label="58% total Elemental Resistance",
+                       min=52, kind="pseudo"),
+            StatFilter(id="explicit.spirit", label="+22 to Spirit", min=19,
+                       kind="explicit", tier=3),
+        ],
+        summary="Sapphire Ring + 3 stat filters",
+    )
+
     w = PriceWindow()
-    w.show_result(rare, many, "https://example/trade", "Sapphire Ring + 2 stat filters")
+    w.show_result(rare, many, "https://example/trade",
+                  "Sapphire Ring + 3 stat filters", rare_spec)
     _grab(w, f"{outdir}/popup_rare.png")
+
+    belt = Item(rarity="Normal", base_type="Utility Belt", item_level=82)
+    belt_spec = SearchSpec(type="Utility Belt", rarity="normal", rarity_enabled=True,
+                           ilvl_min=82, ilvl_enabled=True,
+                           summary="white base: Utility Belt, ilvl 82+")
+    w.show_result(belt, listings, "https://example/trade",
+                  "white base: Utility Belt, ilvl 82+", belt_spec)
+    _grab(w, f"{outdir}/popup_white_base.png")
 
     w.show_result(unique, listings, "https://example/trade", "by name: Astramentis")
     _grab(w, f"{outdir}/popup_unique.png")

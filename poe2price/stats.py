@@ -21,6 +21,7 @@ import math
 import os
 import time
 from collections import defaultdict
+from dataclasses import dataclass
 
 STATS_URL = "https://www.pathofexile.com/api/trade2/data/stats"
 STATIC_URL = "https://www.pathofexile.com/api/trade2/data/static"
@@ -130,13 +131,51 @@ def _relax(value: float, factor: float = _ROLL_RELAX) -> float:
     return max(math.floor(value * factor), 1)
 
 
-def build_stat_filters(item, index: StatsIndex) -> list[dict]:
-    """Build trade2 stat filters for *item*.
+@dataclass
+class StatFilter:
+    """One editable trade2 stat filter: an id, a human label, and a min/max.
+
+    This is the model the interactive popup edits — each parsed mod (or folded
+    pseudo total) becomes one of these. ``to_query`` renders it into the API's
+    ``{"id": ..., "value": {"min": ...}, "disabled": ...}`` shape.
+    """
+
+    id: str                         # trade2 stat id, e.g. "explicit.stat_123"
+    label: str                      # display text shown next to the checkbox
+    enabled: bool = True
+    min: float | None = None
+    max: float | None = None
+    kind: str = "explicit"          # explicit/implicit/… — for the UI tag/colour
+    tier: int | None = None
+
+    def to_query(self) -> dict:
+        entry: dict = {"id": self.id, "disabled": not self.enabled}
+        value: dict = {}
+        if self.min is not None:
+            value["min"] = self.min
+        if self.max is not None:
+            value["max"] = self.max
+        if value:
+            entry["value"] = value
+        return entry
+
+
+def _fill(template: str, values: list[float]) -> str:
+    """Fill a ``#``-template with its rolled values for display."""
+    text = template
+    for value in values:
+        num = str(int(value)) if value == int(value) else str(round(value, 2))
+        text = text.replace("#", num, 1)
+    return text
+
+
+def build_filter_model(item, index: StatsIndex) -> list[StatFilter]:
+    """Build the editable :class:`StatFilter` list for *item*'s mods.
 
     Resistances/life/attributes are folded into pseudo-totals (when the catalog
     has the pseudo); the contributing mods are then dropped in favour of the
-    total. Remaining mods become individual stat filters. Single-number mods get
-    a relaxed min roll so the search isn't pinned to the exact value.
+    total. Remaining mods become individual filters. Single-number mods get a
+    relaxed min roll so the search isn't pinned to the exact value.
     """
     mods = [*item.implicits, *item.enchants, *item.explicits]
 
@@ -149,7 +188,7 @@ def build_stat_filters(item, index: StatsIndex) -> list[dict]:
                 totals[key] += mod.values[0] * mult
                 contributors[key].append(mod)
 
-    filters: list[dict] = []
+    filters: list[StatFilter] = []
     consumed: set[int] = set()
 
     def emit_pseudo(key: str, amount: float, source_keys: list[str]) -> None:
@@ -158,11 +197,12 @@ def build_stat_filters(item, index: StatsIndex) -> list[dict]:
         pseudo_id = index.pseudo(_PSEUDO_TEXT[key])
         if not pseudo_id:
             return  # catalog lacks it; leave the mods as individual filters
-        filters.append({
-            "id": pseudo_id,
-            "value": {"min": _relax(amount)},
-            "disabled": False,
-        })
+        filters.append(StatFilter(
+            id=pseudo_id,
+            label=_fill(_PSEUDO_TEXT[key], [amount]),
+            min=_relax(amount),
+            kind="pseudo",
+        ))
         for src in source_keys:
             for mod in contributors[src]:
                 consumed.add(id(mod))
@@ -184,12 +224,21 @@ def build_stat_filters(item, index: StatsIndex) -> list[dict]:
         stat_id = index.match(mod)
         if not stat_id:
             continue
-        entry: dict = {"id": stat_id, "disabled": False}
-        if len(mod.values) == 1:
-            entry["value"] = {"min": _relax(mod.values[0])}
-        filters.append(entry)
+        single = len(mod.values) == 1
+        filters.append(StatFilter(
+            id=stat_id,
+            label=mod.raw or _fill(mod.text, mod.values),
+            min=_relax(mod.values[0]) if single else None,
+            kind=mod.kind,
+            tier=mod.tier,
+        ))
 
     return filters
+
+
+def build_stat_filters(item, index: StatsIndex) -> list[dict]:
+    """Backward-compatible helper returning enabled filters in API-query shape."""
+    return [f.to_query() for f in build_filter_model(item, index)]
 
 
 def load_currency_map(session, *, max_age_seconds: int = _MAX_AGE_SECONDS) -> dict[str, str]:

@@ -7,13 +7,16 @@ import pytest
 
 from poe2price.config import Config
 from poe2price.parser import Item
+from poe2price.stats import StatFilter
 from poe2price.trade import (
     Listing,
+    SearchSpec,
     TradeClient,
     TradeError,
     _exchange_listings,
     _to_listing,
     build_query,
+    build_search_spec,
     plan_search,
     summarize,
 )
@@ -228,25 +231,36 @@ def test_send_surfaces_long_429(monkeypatch):
 
 # --- price_item flow (mocked HTTP) ------------------------------------------
 
-def test_price_item_returns_listings_url_and_summary(monkeypatch):
+def test_price_item_returns_listings_url_summary_and_spec(monkeypatch):
     client = _client()
     monkeypatch.setattr(client, "_post_search",
                         lambda q: {"id": "SID", "result": ["a", "b"]})
     monkeypatch.setattr(client, "_fetch",
                         lambda ids, sid: [Listing(1, "exalted", "x", "@x")])
-    listings, url, summary = client.price_item(Item(rarity="Unique", name="X"))
+    listings, url, summary, spec = client.price_item(Item(rarity="Unique", name="X"))
     assert len(listings) == 1
     assert url.endswith("/SID")
     assert summary == "by name: X"
+    assert spec is not None and spec.name == "X"  # editable spec returned
 
 
 def test_price_item_no_results(monkeypatch):
     client = _client()
     monkeypatch.setattr(client, "_post_search",
                         lambda q: {"id": "SID", "result": []})
-    listings, url, summary = client.price_item(Item(rarity="Unique", name="X"))
+    listings, url, summary, spec = client.price_item(Item(rarity="Unique", name="X"))
     assert listings == []
     assert "SID" in url
+
+
+def test_price_item_currency_has_no_spec(monkeypatch):
+    client = _client()
+    monkeypatch.setattr(client, "currency_map", lambda: {"Divine Orb": "divine"})
+    monkeypatch.setattr(client, "_send",
+                        lambda *a, **k: _FakeResponse(200, {"id": "X", "result": {}}))
+    listings, url, summary, spec = client.price_item(
+        Item(rarity="Currency", base_type="Divine Orb"))
+    assert spec is None  # currency isn't refinable by stat filters
 
 
 # --- transient 5xx retry ----------------------------------------------------
@@ -413,6 +427,46 @@ def test_plan_white_base_without_item_level_still_constrains_rarity():
     plan = plan_search(Item(rarity="Normal", base_type="Utility Belt"), None)
     tf = plan.query["query"]["filters"]["type_filters"]["filters"]
     assert tf == {"rarity": {"option": "normal"}}  # no ilvl when unknown
+
+
+# --- SearchSpec (editable search model) -------------------------------------
+
+def test_spec_to_query_includes_disabled_stats():
+    spec = SearchSpec(type="Sapphire Ring", stats=[
+        StatFilter(id="explicit.stat_life", label="+# to maximum Life", min=80),
+        StatFilter(id="explicit.stat_cold", label="+#% Cold Res", enabled=False, min=30),
+    ])
+    q = spec.to_query()["query"]
+    filters = q["stats"][0]["filters"]
+    assert filters[0] == {"id": "explicit.stat_life", "disabled": False,
+                          "value": {"min": 80}}
+    # Disabled rows ride along with disabled:true so the trade URL mirrors the UI.
+    assert filters[1]["disabled"] is True
+    assert spec.active_stat_count == 1
+
+
+def test_spec_to_query_type_filters_only_when_enabled():
+    spec = SearchSpec(type="Utility Belt", rarity="normal", rarity_enabled=True,
+                      ilvl_min=82, ilvl_enabled=False)
+    tf = spec.to_query()["query"]["filters"]["type_filters"]["filters"]
+    assert tf == {"rarity": {"option": "normal"}}  # ilvl disabled -> omitted
+
+
+def test_build_search_spec_white_base():
+    spec = build_search_spec(Item(rarity="Normal", base_type="Utility Belt",
+                                  item_level=82), None)
+    assert spec.rarity_enabled and spec.ilvl_enabled and spec.ilvl_min == 82
+    assert spec.stats == []  # white bases carry no editable mods
+
+
+def test_search_spec_method_runs_and_returns_url(monkeypatch):
+    client = _client()
+    monkeypatch.setattr(client, "_post_search",
+                        lambda q: {"id": "SID", "result": ["a"]})
+    monkeypatch.setattr(client, "_fetch",
+                        lambda ids, sid: [Listing(2, "exalted", "x", "@x")])
+    listings, url = client.search_spec(SearchSpec(type="X"))
+    assert len(listings) == 1 and url.endswith("/SID")
 
 
 def test_plan_summary_by_name_for_unique():

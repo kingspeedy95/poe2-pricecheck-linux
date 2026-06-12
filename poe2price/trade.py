@@ -21,14 +21,15 @@ import statistics
 import time
 import urllib.parse
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import requests
 
 from .parser import Item
 from .stats import (
+    StatFilter,
     StatsIndex,
-    build_stat_filters,
+    build_filter_model,
     load_currency_map,
     load_stats_index,
 )
@@ -221,28 +222,42 @@ class TradeClient:
             return False, "POESESSID rejected — log in again and copy a fresh cookie"
         return False, f"unexpected status {resp.status_code} while checking session"
 
-    def price_item(self, item: Item) -> tuple[list[Listing], str, str]:
-        """Return (listings, trade_site_url, search_summary) for *item*.
+    def price_item(
+        self, item: Item
+    ) -> tuple[list[Listing], str, str, SearchSpec | None]:
+        """Return (listings, trade_site_url, summary, spec) for *item*.
 
-        Currency is priced via the bulk exchange endpoint; everything else via
-        the search endpoint. The summary describes what we actually searched by
-        (e.g. "base + 4 stat filters") so the result is never a mystery.
+        Currency is priced via the bulk exchange endpoint (no editable spec);
+        everything else via the search endpoint. The returned *spec* is the
+        editable search the popup lets the user refine and re-run; it is None for
+        currency. The summary describes what we searched by so it's never a
+        mystery.
         """
         if self._is_currency(item):
             result = self._price_currency(item)
             if result is not None:
-                return result
+                listings, url, summary = result
+                return listings, url, summary, None
             # fall through to a normal search if the currency isn't recognised
 
-        plan = plan_search(item, self.stats_index(), self._status())
-        search = self._post_search(plan.query)
+        spec = build_search_spec(item, self.stats_index(), self._status())
+        listings, url = self.search_spec(spec)
+        return listings, url, spec.summary, spec
+
+    def search_spec(self, spec: SearchSpec) -> tuple[list[Listing], str]:
+        """Run *spec* against the search endpoint; return (listings, url).
+
+        This is the re-runnable core the popup calls each time the user edits the
+        filters and presses Search.
+        """
+        search = self._post_search(spec.to_query())
         result_ids = search.get("result") or []
         search_id = search.get("id")
         url = f"{SITE}/{urllib.parse.quote(self.cfg.league)}/{search_id}"
         if not result_ids:
-            return [], url, plan.summary
+            return [], url
         listings = self._fetch(result_ids[: self.cfg.max_listings], search_id)
-        return listings, url, plan.summary
+        return listings, url
 
     def _status(self) -> str:
         """The configured listing status, defaulting to 'online' if invalid."""
@@ -434,77 +449,131 @@ def _to_listing(entry: dict) -> Listing:
 
 
 @dataclass
+class SearchSpec:
+    """The editable state of a trade2 search.
+
+    Built automatically from an item, then handed to the popup so the user can
+    toggle individual stat filters, adjust their min/max, and turn the item-level
+    and rarity constraints on or off before re-running the search. ``to_query``
+    renders the current state into a trade2 search body.
+    """
+
+    status: str = "online"
+    name: str | None = None             # unique name match
+    type: str | None = None             # base type
+    term: str | None = None             # free-text last resort
+    rarity: str | None = None           # type_filters rarity option, e.g. "normal"
+    rarity_enabled: bool = False
+    ilvl_min: int | None = None
+    ilvl_enabled: bool = False
+    stats: list[StatFilter] = field(default_factory=list)
+    summary: str = ""
+
+    def query_body(self) -> dict:
+        q: dict = {"status": {"option": self.status}}
+        if self.name:
+            q["name"] = self.name
+        if self.type:
+            q["type"] = self.type
+        if self.term and not self.type and not self.name:
+            q["term"] = self.term
+        type_filters: dict = {}
+        if self.rarity_enabled and self.rarity:
+            type_filters["rarity"] = {"option": self.rarity}
+        if self.ilvl_enabled and self.ilvl_min is not None:
+            type_filters["ilvl"] = {"min": self.ilvl_min}
+        if type_filters:
+            q["filters"] = {"type_filters": {"filters": type_filters}}
+        # Include all stat rows (disabled ones carry disabled:true) so the opened
+        # trade-site URL mirrors exactly what the popup shows.
+        if self.stats:
+            q["stats"] = [{"type": "and",
+                           "filters": [f.to_query() for f in self.stats]}]
+        return q
+
+    def to_query(self) -> dict:
+        return {"query": self.query_body(), "sort": {"price": "asc"}}
+
+    @property
+    def active_stat_count(self) -> int:
+        return sum(1 for f in self.stats if f.enabled)
+
+
+@dataclass
 class SearchPlan:
-    """A built search body plus a human description of what it searches by."""
+    """A built search body plus a human description and the editable spec."""
 
     query: dict
     summary: str
+    spec: SearchSpec | None = None
+
+
+def build_search_spec(
+    item: Item, stats_index: StatsIndex | None = None, status: str = "online"
+) -> SearchSpec:
+    """Build the default :class:`SearchSpec` for *item*.
+
+    Uniques search by name (+ base type); name-searchable items by base type.
+    Normal (white) bases are chance/craft fodder priced by base + item level +
+    being white (no mods — chancing destroys them). Rares/magics search by base
+    type **plus stat filters** from their mods (pseudo-folded, relaxed mins) when
+    *stats_index* is available.
+    """
+    spec = SearchSpec(status=status)
+
+    if item.rarity == "Unique" and item.name:
+        spec.name = item.name
+        spec.type = item.base_type or None
+        spec.summary = f"by name: {item.name}"
+        return spec
+
+    if item.name_searchable and item.base_type:
+        spec.type = item.base_type
+        spec.summary = f"by base: {item.base_type}"
+        return spec
+
+    if item.base_type:
+        spec.type = item.base_type
+
+    # Normal (white) base: rarity=normal at >= the item's level, no stat filters.
+    # Searching by base type alone (cheapest-first) returns the globally cheapest
+    # base of any rarity/ilvl — a useless ~1-orb result.
+    if item.rarity == "Normal" and item.base_type:
+        spec.rarity = "normal"
+        spec.rarity_enabled = True
+        if item.item_level is not None:
+            spec.ilvl_min = item.item_level
+            spec.ilvl_enabled = True
+        ilvl_note = f", ilvl {item.item_level}+" if item.item_level is not None else ""
+        spec.summary = f"white base: {item.base_type}{ilvl_note}"
+        return spec
+
+    spec.stats = build_filter_model(item, stats_index) if stats_index else []
+    if spec.stats:
+        base = item.base_type or "any base"
+        n = len(spec.stats)
+        spec.summary = f"{base} + {n} stat filter{'s' * (n != 1)}"
+    elif item.base_type:
+        spec.summary = "base only — no mods matched the catalog"
+    elif item.name:
+        spec.term = item.name  # last resort when we have nothing else
+        spec.summary = f"by text: {item.name}"
+    else:
+        spec.summary = "everything (could not identify item)"
+    return spec
 
 
 def plan_search(
     item: Item, stats_index: StatsIndex | None = None, status: str = "online"
 ) -> SearchPlan:
-    """Plan a trade2 search for *item*.
-
-    Uniques search by name (+ base type); name-searchable items by base type.
-    Rares/magics search by base type **plus stat filters** from their mods
-    (pseudo-folded, relaxed mins) when *stats_index* is available. The summary
-    explains the choice so a base-only fallback is never silent. *status* is the
-    listing status filter ("online" or "any").
-    """
-    query: dict = {"status": {"option": status}}
-
-    if item.rarity == "Unique" and item.name:
-        query["name"] = item.name
-        if item.base_type:
-            query["type"] = item.base_type
-        return SearchPlan(_wrap(query), f"by name: {item.name}")
-
-    if item.name_searchable and item.base_type:
-        query["type"] = item.base_type
-        return SearchPlan(_wrap(query), f"by base: {item.base_type}")
-
-    # Rare / Magic (and anything else with mods): base type + stat filters.
-    if item.base_type:
-        query["type"] = item.base_type
-
-    # Normal (white) bases are crafting/gambling fodder: they carry no mods, so
-    # their price is driven by the base type, the item level, and being white.
-    # Searching by base type alone (sorted cheapest-first) returns the globally
-    # cheapest belt/ring/etc. of any rarity and any item level — a useless
-    # ~1-orb result. Constrain to white bases at >= this item level so we
-    # compare against the same market the in-game price check does.
-    if item.rarity == "Normal" and item.base_type:
-        type_filters: dict = {"rarity": {"option": "normal"}}
-        if item.item_level is not None:
-            type_filters["ilvl"] = {"min": item.item_level}
-        query["filters"] = {"type_filters": {"filters": type_filters}}
-        ilvl_note = f", ilvl {item.item_level}+" if item.item_level is not None else ""
-        return SearchPlan(_wrap(query), f"white base: {item.base_type}{ilvl_note}")
-
-    filters = build_stat_filters(item, stats_index) if stats_index else []
-    if filters:
-        query["stats"] = [{"type": "and", "filters": filters}]
-        base = item.base_type or "any base"
-        summary = f"{base} + {len(filters)} stat filter{'s' * (len(filters) != 1)}"
-    elif item.base_type:
-        summary = "base only — no mods matched the catalog"
-    elif item.name:
-        query["term"] = item.name  # last resort when we have nothing else
-        summary = f"by text: {item.name}"
-    else:
-        summary = "everything (could not identify item)"
-
-    return SearchPlan(_wrap(query), summary)
+    """Plan a trade2 search for *item* (query body + summary + editable spec)."""
+    spec = build_search_spec(item, stats_index, status)
+    return SearchPlan(spec.to_query(), spec.summary, spec)
 
 
 def build_query(item: Item, stats_index: StatsIndex | None = None) -> dict:
     """Backward-compatible helper returning just the query body."""
     return plan_search(item, stats_index).query
-
-
-def _wrap(query: dict) -> dict:
-    return {"query": query, "sort": {"price": "asc"}}
 
 
 def _exchange_listings(data: dict, limit: int) -> list[Listing]:

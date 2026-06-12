@@ -39,10 +39,10 @@ log = get_logger()
 
 
 class PriceWorker(QtCore.QObject):
-    """Runs the trade lookup off the UI thread."""
+    """Runs the initial trade lookup off the UI thread."""
 
-    # Item, list[Listing], url, search summary
-    finished = QtCore.pyqtSignal(object, object, str, str)
+    # Item, list[Listing], url, search summary, editable SearchSpec (or None)
+    finished = QtCore.pyqtSignal(object, object, str, str, object)
     failed = QtCore.pyqtSignal(str)
 
     def __init__(self, client: TradeClient, item: Item) -> None:
@@ -52,13 +52,35 @@ class PriceWorker(QtCore.QObject):
 
     def run(self) -> None:
         try:
-            listings, url, summary = self.client.price_item(self.item)
+            listings, url, summary, spec = self.client.price_item(self.item)
         except TradeError as exc:
             self.failed.emit(str(exc))
         except Exception as exc:  # network, JSON, ...
             self.failed.emit(f"Unexpected error: {exc}")
         else:
-            self.finished.emit(self.item, listings, url, summary)
+            self.finished.emit(self.item, listings, url, summary, spec)
+
+
+class SpecWorker(QtCore.QObject):
+    """Re-runs a user-refined SearchSpec off the UI thread."""
+
+    finished = QtCore.pyqtSignal(object, str)  # listings, url
+    failed = QtCore.pyqtSignal(str)
+
+    def __init__(self, client: TradeClient, spec) -> None:
+        super().__init__()
+        self.client = client
+        self.spec = spec
+
+    def run(self) -> None:
+        try:
+            listings, url = self.client.search_spec(self.spec)
+        except TradeError as exc:
+            self.failed.emit(str(exc))
+        except Exception as exc:  # network, JSON, ...
+            self.failed.emit(f"Unexpected error: {exc}")
+        else:
+            self.finished.emit(listings, url)
 
 
 class App(QtCore.QObject):
@@ -73,6 +95,7 @@ class App(QtCore.QObject):
         self.clipboard = QtWidgets.QApplication.clipboard()
 
         self.hotkey_pressed.connect(self._on_hotkey)
+        self.window.search_requested.connect(self._on_search_requested)
 
         self._poll_timer = QtCore.QTimer()
         self._poll_timer.setInterval(_POLL_INTERVAL_MS)
@@ -176,16 +199,40 @@ class App(QtCore.QObject):
         self._worker = worker  # keep a reference while it runs
         threading.Thread(target=worker.run, daemon=True).start()
 
-    def _on_finished(self, item: Item, listings, url: str, summary: str) -> None:
+    def _on_finished(self, item: Item, listings, url: str, summary: str,
+                     spec) -> None:
         self._busy = False
         log.info("Result for %s: %d listings (%s)",
                  item.display_name, len(listings), summary)
-        self.window.show_result(item, listings, url, summary)
+        self.window.show_result(item, listings, url, summary, spec)
 
     def _on_failed(self, message: str) -> None:
         self._busy = False
         log.warning("Lookup failed: %s", message)
         self.window.show_error(message)
+
+    # -- refined re-search (Search button) ---------------------------------
+
+    def _on_search_requested(self, spec) -> None:
+        if self._busy:
+            return
+        self._busy = True
+        log.info("Refined search: %d active stat filter(s)", spec.active_stat_count)
+        worker = SpecWorker(self.client, spec)
+        worker.finished.connect(self._on_research_finished)
+        worker.failed.connect(self._on_research_failed)
+        self._search_worker = worker  # keep a reference while it runs
+        threading.Thread(target=worker.run, daemon=True).start()
+
+    def _on_research_finished(self, listings, url: str) -> None:
+        self._busy = False
+        log.info("Refined result: %d listings", len(listings))
+        self.window.update_listings(listings, url)
+
+    def _on_research_failed(self, message: str) -> None:
+        self._busy = False
+        log.warning("Refined search failed: %s", message)
+        self.window.show_search_error(message)
 
 
 def main() -> int:
