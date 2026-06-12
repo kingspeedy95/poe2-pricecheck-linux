@@ -469,6 +469,58 @@ def test_search_spec_method_runs_and_returns_url(monkeypatch):
     assert len(listings) == 1 and url.endswith("/SID")
 
 
+def _overconstrained_spec():
+    return SearchSpec(type="Lunar Amulet", stats=[
+        StatFilter(id="pseudo.pseudo_total_life", label="life", min=50),
+        StatFilter(id="explicit.stat_spirit", label="spirit", min=40),
+        StatFilter(id="explicit.stat_iir", label="iir", min=15),
+    ])
+
+
+def _enabled_count(query: dict) -> int:
+    return sum(1 for f in query["query"]["stats"][0]["filters"] if not f["disabled"])
+
+
+def test_search_spec_auto_relaxes_dropping_nonpseudo_first(monkeypatch):
+    client = _client()
+    spec = _overconstrained_spec()
+    monkeypatch.setattr(client, "_fetch",
+                        lambda ids, sid: [Listing(1, "exalted", "a", "@a") for _ in ids])
+
+    # Empty while any non-pseudo mod is still enabled; matches once both are off.
+    def fake_post(q):
+        non_pseudo_on = any(
+            not f["disabled"] and not f["id"].startswith("pseudo")
+            for f in q["query"]["stats"][0]["filters"]
+        )
+        return {"id": "S", "result": [] if non_pseudo_on else ["a", "b", "c"]}
+
+    monkeypatch.setattr(client, "_post_search", fake_post)
+    listings, _ = client.search_spec(spec, relax=True)
+    assert listings  # found after relaxing
+    # The two non-pseudo mods were dropped; the pseudo life anchor was kept.
+    assert spec.stats[0].enabled is True
+    assert spec.stats[1].enabled is False and spec.stats[2].enabled is False
+
+
+def test_search_spec_no_relax_by_default(monkeypatch):
+    client = _client()
+    spec = _overconstrained_spec()
+    monkeypatch.setattr(client, "_post_search", lambda q: {"id": "S", "result": []})
+    listings, _ = client.search_spec(spec)  # relax defaults to False
+    assert listings == []
+    assert all(f.enabled for f in spec.stats)  # filters left untouched
+
+
+def test_relax_keeps_at_least_one_filter(monkeypatch):
+    client = _client()
+    spec = _overconstrained_spec()
+    # Always empty: relaxation must stop before disabling every filter.
+    monkeypatch.setattr(client, "_post_search", lambda q: {"id": "S", "result": []})
+    client.search_spec(spec, relax=True)
+    assert sum(1 for f in spec.stats if f.enabled) >= 1
+
+
 def test_plan_summary_by_name_for_unique():
     plan = plan_search(Item(rarity="Unique", name="Astramentis"), None)
     assert plan.summary == "by name: Astramentis"

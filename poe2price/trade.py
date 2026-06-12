@@ -45,6 +45,10 @@ _REFERENCE_FALLBACK = "divine"  # used when pricing exalted itself
 # Fewer than this many comparable listings -> flag the price as uncertain.
 _LOW_CONFIDENCE_COUNT = 3
 
+# When the initial auto-search ANDs too many mods and matches nothing, relax at
+# most this many of the lowest-priority stat filters before giving up.
+_MAX_RELAX_DROPS = 4
+
 # The trade API intermittently returns these; a retry almost always succeeds.
 _RETRYABLE_STATUS = {500, 502, 503, 504}
 _MAX_ATTEMPTS = 3
@@ -241,15 +245,34 @@ class TradeClient:
             # fall through to a normal search if the currency isn't recognised
 
         spec = build_search_spec(item, self.stats_index(), self._status())
-        listings, url = self.search_spec(spec)
-        return listings, url, spec.summary, spec
+        # Auto-relax the initial search: a multi-mod rare ANDs all its filters,
+        # which often matches zero online listings even though a slightly looser
+        # search prices it fine. Dropped filters come back disabled in the spec
+        # so the popup shows them unchecked and the user can re-tighten.
+        listings, url = self.search_spec(spec, relax=True)
+        summary = spec.summary
+        dropped = sum(1 for f in spec.stats if not f.enabled)
+        if dropped:
+            summary += (f"  ·  relaxed {dropped} filter"
+                        f"{'s' * (dropped != 1)} to find matches")
+        return listings, url, summary, spec
 
-    def search_spec(self, spec: SearchSpec) -> tuple[list[Listing], str]:
+    def search_spec(
+        self, spec: SearchSpec, *, relax: bool = False
+    ) -> tuple[list[Listing], str]:
         """Run *spec* against the search endpoint; return (listings, url).
 
         This is the re-runnable core the popup calls each time the user edits the
-        filters and presses Search.
+        filters and presses Search — exact by default (the user's choices are
+        respected). With *relax* (the initial auto-search), an empty result is
+        retried with the lowest-priority stat filters progressively disabled.
         """
+        listings, url = self._run_query(spec)
+        if relax and not listings:
+            listings, url = self._relax_search(spec, url)
+        return listings, url
+
+    def _run_query(self, spec: SearchSpec) -> tuple[list[Listing], str]:
         search = self._post_search(spec.to_query())
         result_ids = search.get("result") or []
         search_id = search.get("id")
@@ -257,6 +280,32 @@ class TradeClient:
         if not result_ids:
             return [], url
         listings = self._fetch(result_ids[: self.cfg.max_listings], search_id)
+        return listings, url
+
+    def _relax_search(
+        self, spec: SearchSpec, url: str
+    ) -> tuple[list[Listing], str]:
+        """Disable the lowest-priority stat filters until the search has matches.
+
+        Non-pseudo mods (spirit, item rarity, …) are dropped before the pseudo
+        anchors (life/ES/resistance totals) that the trade site actually prices
+        on; later-rolled mods go first. At least one filter is always kept, and
+        we stop early once there are enough listings to trust.
+        """
+        def is_pseudo(f: StatFilter) -> bool:
+            return f.id.startswith("pseudo")
+
+        order = ([f for f in reversed(spec.stats) if f.enabled and not is_pseudo(f)]
+                 + [f for f in reversed(spec.stats) if f.enabled and is_pseudo(f)])
+
+        listings: list[Listing] = []
+        for filt in order[:_MAX_RELAX_DROPS]:
+            if sum(1 for f in spec.stats if f.enabled) <= 1:
+                break  # never drop the last filter (base-only is meaningless here)
+            filt.enabled = False
+            listings, url = self._run_query(spec)
+            if len(listings) >= _LOW_CONFIDENCE_COUNT:
+                break
         return listings, url
 
     def _status(self) -> str:
