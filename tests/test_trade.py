@@ -354,6 +354,22 @@ def test_summarize_confident_with_enough_listings():
     assert "few data points" not in s.text
 
 
+def test_summarize_reports_spread_high():
+    # A flooded white-base market: cheap floor, expensive outliers. The detail
+    # surfaces the high so a user eyeballing pricey in-game listings sees them
+    # without the median being dragged up by the outliers.
+    listings = [Listing(p, "exalted", "a", "@a") for p in (3, 3, 5, 7, 10, 50)]
+    s = summarize(listings)
+    assert s.high == 50
+    assert "low 3" in s.detail and "high 50" in s.detail
+
+
+def test_summarize_no_spread_when_all_equal():
+    s = summarize([Listing(1, "exalted", "a", "@a") for _ in range(5)])
+    assert s.low == s.median == s.high == 1
+    assert "low" not in s.detail and "high" not in s.detail  # nothing to show
+
+
 def test_summarize_uses_dominant_currency_and_median():
     listings = [
         Listing(1, "exalted", "a", "@a"),    # lowball outlier
@@ -377,6 +393,26 @@ def test_plan_summary_base_only_when_no_mods_match():
     plan = plan_search(Item(rarity="Rare", base_type="Iron Ring"), None)
     assert "base only" in plan.summary
     assert "stats" not in plan.query["query"]
+
+
+def test_plan_white_base_filters_rarity_and_ilvl():
+    # A Normal (white) base is gambling/crafting fodder: it must be searched as
+    # rarity=normal at >= its item level, not by base type alone (which returns
+    # the globally cheapest base of any rarity — a useless ~1-orb result).
+    plan = plan_search(
+        Item(rarity="Normal", base_type="Utility Belt", item_level=82), None
+    )
+    tf = plan.query["query"]["filters"]["type_filters"]["filters"]
+    assert tf["rarity"] == {"option": "normal"}
+    assert tf["ilvl"] == {"min": 82}
+    assert plan.query["query"]["type"] == "Utility Belt"
+    assert "white base" in plan.summary and "82+" in plan.summary
+
+
+def test_plan_white_base_without_item_level_still_constrains_rarity():
+    plan = plan_search(Item(rarity="Normal", base_type="Utility Belt"), None)
+    tf = plan.query["query"]["filters"]["type_filters"]["filters"]
+    assert tf == {"rarity": {"option": "normal"}}  # no ilvl when unknown
 
 
 def test_plan_summary_by_name_for_unique():

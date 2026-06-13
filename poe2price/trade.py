@@ -85,6 +85,7 @@ class PriceSummary:
     currency: str | None
     low: float | None
     median: float | None
+    high: float | None = None   # priciest of the sampled listings
 
     @property
     def low_confidence(self) -> bool:
@@ -106,6 +107,8 @@ class PriceSummary:
         parts = [f"{self.count} listing" + ("s" if self.count != 1 else "")]
         if self.low is not None and self.low != self.median:
             parts.append(f"low {_fmt_amount(self.low)}")
+        if self.high is not None and self.high != self.median and self.high != self.low:
+            parts.append(f"high {_fmt_amount(self.high)}")
         if self.low_confidence:
             parts.append("few data points")
         return " · ".join(parts)
@@ -145,6 +148,7 @@ def summarize(listings: list[Listing]) -> PriceSummary:
         currency=dominant,
         low=amounts[0],
         median=statistics.median(amounts),
+        high=amounts[-1],
     )
 
 
@@ -463,6 +467,20 @@ def plan_search(
     # Rare / Magic (and anything else with mods): base type + stat filters.
     if item.base_type:
         query["type"] = item.base_type
+
+    # Normal (white) bases are crafting/gambling fodder: they carry no mods, so
+    # their price is driven by the base type, the item level, and being white.
+    # Searching by base type alone (sorted cheapest-first) returns the globally
+    # cheapest belt/ring/etc. of any rarity and any item level — a useless
+    # ~1-orb result. Constrain to white bases at >= this item level so we
+    # compare against the same market the in-game price check does.
+    if item.rarity == "Normal" and item.base_type:
+        type_filters: dict = {"rarity": {"option": "normal"}}
+        if item.item_level is not None:
+            type_filters["ilvl"] = {"min": item.item_level}
+        query["filters"] = {"type_filters": {"filters": type_filters}}
+        ilvl_note = f", ilvl {item.item_level}+" if item.item_level is not None else ""
+        return SearchPlan(_wrap(query), f"white base: {item.base_type}{ilvl_note}")
 
     filters = build_stat_filters(item, stats_index) if stats_index else []
     if filters:
